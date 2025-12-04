@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "MySave - 나만의 북마크",
+    "version": "1.0",
+    "description": "현재 페이지를 MySave 대시보드에 저장합니다.",
+    "permissions": ["activeTab", "storage", "scripting"],
+    "action": {
+      "default_popup": "extension.html",
+      "default_icon": {
+        "16": "icon.png",   
+        "48": "icon.png",
+        "128": "icon.png"
+      }
+    },
+    "icons": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  }

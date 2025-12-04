@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmark Tag</title>
+
+    <!-- 1. 다크모드 스크립트 -->
+   <script src="../theme/theme.js"></script>
+    <!-- 2. 폰트 & 아이콘 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 3. 전역 다크모드 CSS -->
+    <link rel="stylesheet" href="../theme/theme.css">
+    <!-- 4. 페이지별 CSS -->
+    <link rel="stylesheet" href="tag.css">
+</head>
+<body>
+
+    <header class="top-header">
+        <nav class="navbar">
+            <ul class="nav-links">
+                <li><a href="../dashboard/dashboard.html">대시보드</a></li>
+                <li><a href="../bookmark/bookmark.html">북마크 목록</a></li>
+                <li class="active"><a href="../tag/tag.html">태그</a></li>
+                <li><a href="../reminder/reminder.html">리마인드</a></li>
+                <li><a href="../setting/setting.html">설정</a></li>
+            </ul>
+        </nav>
+        <div class="search-container">
+            <input type="text" placeholder="저장한 글, 태그 검색">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+    </header>
+
+    <main class="main-container tag-page">
+        
+        <section class="tag-panel create-panel">
+            <h3>새 태그 추가</h3>
+            
+            <div class="input-group">
+                <input type="text" id="tagNameInput" placeholder="예 : AI" autocomplete="off">
+            </div>
+
+            <div class="color-selection">
+                <h4>색상 태그</h4>
+                <div class="palette">
+                    <div class="color-circle selected" data-color="red" style="background-color: #ffadad;"></div>
+                    <div class="color-circle" data-color="orange" style="background-color: #ffd6a5;"></div>
+                    <div class="color-circle" data-color="yellow" style="background-color: #fdffb6;"></div>
+                    <div class="color-circle" data-color="green" style="background-color: #caffbf;"></div>
+                    <div class="color-circle" data-color="blue" style="background-color: #a0c4ff;"></div>
+                    <div class="color-circle" data-color="purple" style="background-color: #bdb2ff;"></div>
+                    <div class="color-circle" data-color="grey" style="background-color: #cfcfcf;"></div>
+                </div>
+            </div>
+
+            <button class="btn-create-tag" id="createTagBtn"># 새 태그 만들기</button>
+        </section>
+
+        <section class="tag-panel list-panel">
+            <h3>태그 관리</h3>
+            
+            <div class="tag-card-grid" id="tagListContainer">
+                </div>
+        </section>
+
+    </main>
+
+    <script src="tag.js"></script>
+</body>
+</html>

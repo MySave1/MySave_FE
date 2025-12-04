@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmark Extension</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="extension.css">
+</head>
+<body>
+
+    <header>
+        <img src="image.png" alt="Logo" class="logo-img">
+    </header>
+
+    <div class="container">
+        
+        <div class="input-section">
+            <label class="field-label">
+                <img src="link.png" alt="link icon" class="label-icon">
+                URL
+            </label>
+            <div class="input-box url-box">
+                <input type="text" id="pageUrl" readonly>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <label class="field-label">제목</label>
+            <div class="input-box">
+                <input type="text" id="pageTitle" placeholder="제목을 입력하세요">
+            </div>
+        </div>
+
+        <div class="input-section">
+            <label class="field-label">텍스트</label>
+            <div class="input-box textarea-box">
+                <textarea id="selectedText" placeholder=""></textarea>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <label class="field-label">메모</label>
+            <div class="input-box textarea-box">
+                <textarea id="memo" placeholder="남기고 싶은 메모를 입력해주세요."></textarea>
+            </div>
+        </div>
+        <div class="input-section">
+            <label class="field-label">태그</label>
+            <div class="tag-wrapper">
+                <div class="input-box">
+                    <input type="text" id="tagInput" placeholder="태그를 입력해주세요">
+                </div>
+                <div id="tagContainer" class="tag-container"></div>
+            </div>
+        </div>
+        <div class="input-section reminder-section">
+            <div class="label-row">
+                <label class="field-label"><i class="fa-solid fa-bell"></i>  리마인드 설정</label>
+                <label class="switch">
+                    <input type="checkbox" id="reminderToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div id="reminderOptions" style="display: none;">
+                <div class="quick-options">
+                    <button class="quick-btn" id="btnTomorrow">
+                        <span>내일</span>
+                        <span class="sub-time">09:00</span>
+                    </button>
+                    <button class="quick-btn" id="btnWeekend">
+                        <span>이번 주말</span>
+                        <span class="sub-time">토 10:00</span>
+                    </button>
+                    <button class="quick-btn" id="btnNextWeek">
+                        <span>다음 주</span>
+                        <span class="sub-time">월 09:00</span>
+                    </button>
+                </div>
+
+                <div class="dashed-box" id="calendarTrigger">
+                    <i class="fa-regular fa-calendar-plus"></i>
+                    <span id="dateDisplay">직접 날짜 / 시간 선택하기</span>
+                </div>
+                <input type="datetime-local" id="reminderDate" class="hidden-date-input">
+            </div>
+        </div>
+
+        <button id="saveBtn" class="btn-save">저장하기</button>
+        <p id="statusMsg"></p>
+
+    </div>
+
+    <script src="extension.js"></script>
+    <script src="extension_theme_loader.js"></script>
+</body>
+</html>

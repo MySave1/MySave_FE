@@ -1,0 +1,243 @@
+/* ================= 기본 설정 및 폰트 ================= */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Pretendard', sans-serif;
+}
+
+body {
+    background-color: #f5f7fa;
+    color: #333;
+}
+
+a { text-decoration: none; color: inherit; }
+li { list-style: none; }
+button { border: none; background: none; cursor: pointer; font-family: inherit; }
+
+/* ================= 헤더 스타일 ================= */
+.top-header {
+    background-color: white;
+    padding: 0 40px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+}
+
+.nav-links li {
+    position: relative;
+    font-weight: 500;
+    color: #777;
+    padding: 24px 0;
+    cursor: pointer;
+}
+
+.nav-links li.active {
+    color: #111;
+    font-weight: 700;
+}
+
+.nav-links li.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #111;
+}
+
+.search-container {
+    position: relative;
+    width: 300px;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    background-color: #f0f2f5;
+    border: none;
+    border-radius: 20px;
+    outline: none;
+    font-size: 14px;
+}
+
+.search-container i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+}
+
+/* ================= 메인 컨테이너 ================= */
+.main-container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px 60px;
+}
+
+/* ================= 태그 페이지 전용 스타일 ================= */
+
+/* 레이아웃: 좌우 2분할 (왼쪽 40%, 오른쪽 60%) */
+.tag-page {
+    display: grid;
+    grid-template-columns: 4fr 6fr;
+    gap: 30px;
+}
+
+.tag-panel {
+    background-color: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    height: fit-content;
+}
+
+.tag-panel h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+/* 왼쪽: 생성 패널 스타일 */
+.input-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 30px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+    border-color: #3b82f6;
+}
+
+.color-selection h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #555;
+}
+
+.palette {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 40px;
+    flex-wrap: wrap; /* 화면 작을 때 줄바꿈 */
+}
+
+.color-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s;
+    border: 2px solid transparent;
+}
+
+.color-circle:hover {
+    transform: scale(1.1);
+}
+
+.color-circle.selected {
+    border-color: #555;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+}
+
+.btn-create-tag {
+    width: 100%;
+    background-color: #3b5998; /* 네이비 색상 */
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-create-tag:hover {
+    background-color: #2d4373;
+}
+
+/* 오른쪽: 태그 목록 스타일 */
+.tag-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.tag-card {
+    padding: 20px;
+    border-radius: 8px;
+    position: relative;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+
+.tag-card:hover {
+    transform: translateY(-2px);
+}
+
+.delete-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 12px;
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.delete-btn:hover { opacity: 1; }
+
+.tag-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.tag-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.tag-name {
+    font-weight: 700;
+    font-size: 16px;
+    color: #333;
+}
+
+.tag-count {
+    font-size: 12px;
+    color: rgba(0,0,0,0.5);
+    margin-left: 16px; 
+}
+
+/* 반응형 스타일 */
+@media (max-width: 900px) {
+    .tag-page { grid-template-columns: 1fr; }
+    .top-header { padding: 0 20px; }
+    .search-container { display: none; }
+}

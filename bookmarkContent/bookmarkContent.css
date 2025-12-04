@@ -1,0 +1,383 @@
+/* 기본 설정 및 리셋 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Pretendard', sans-serif;
+}
+
+body {
+    background-color: #f5f7fa;
+    color: #333;
+}
+
+a { text-decoration: none; color: inherit; }
+li { list-style: none; }
+button { border: none; background: none; cursor: pointer; font-family: inherit; }
+
+/* ================= 헤더 스타일 ================= */
+.top-header {
+    background-color: white;
+    padding: 0 40px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+}
+
+.nav-links li {
+    position: relative;
+    font-weight: 500;
+    color: #777;
+    padding: 24px 0;
+}
+
+.nav-links li.active {
+    color: #111;
+    font-weight: 700;
+}
+
+.nav-links li.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #111;
+}
+
+.search-container {
+    position: relative;
+    width: 300px;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 10px 15px 10px 40px; /* 아이콘 공간 확보 */
+    background-color: #f0f2f5;
+    border: none;
+    border-radius: 20px;
+    outline: none;
+    font-size: 14px;
+}
+
+.search-container i {
+    position: absolute;
+    left: 15px; /* 왼쪽으로 이동 */
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+}
+
+
+/* 메인 컨텐츠 레이아웃 */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.back-navigation {
+    display: flex;               /* 플렉스 박스 */
+    justify-content: space-between; /* 양 끝 정렬 */
+    align-items: center;
+    margin-bottom: 20px;
+    height: 40px;
+}
+
+.btn-back {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.grid-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* 좌측 2 : 우측 1 비율 */
+    gap: 24px;
+}
+
+/* 공통 카드 스타일 */
+.card {
+    background-color: var(--white);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+}
+
+/* 왼쪽 컨텐츠 영역 */
+.thumbnail-placeholder {
+    width: 100%;
+    height: 320px;
+    background-color: #E6E8EB; /* 회색 박스 */
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.article-header {
+    margin-bottom: 30px;
+}
+
+.title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.title-row h1 {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.btn-star {
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    color:#facc15;
+    cursor: pointer;
+
+}
+
+.meta-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tag {
+    background-color: var(--tag-bg);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.date {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.article-body p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #4E5968;
+    margin-bottom: 16px;
+}
+
+/* 오른쪽 사이드바 */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.ai-card .card-title {
+    color: #3182F6; /* AI 아이콘/타이틀 색상 */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 18px;
+}
+
+.memo-card .card-title {
+    margin-bottom: 16px;
+    font-size: 18px;
+    color: var(--text-primary);
+}
+
+.card-content {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+    margin-bottom: 20px;
+    min-height: 60px;
+}
+
+.card-content textarea {
+    width: 100%;
+    border: none;
+    resize: none;
+    font-size: 14px;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    color: #333;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-light-blue {
+    background-color: var(--btn-bg-blue);
+    border: none;
+    padding: 10px 16px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    background-color: #C5DCFF;
+    color:#1B6FF6;
+    transition: background 0.2s;
+}
+
+/* 읽음 상태 버튼 기본 스타일 */
+.btn-read-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    background-color: #f5f5f5;
+    color: #888;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* [상태 변화] 읽음 처리되었을 때 (초록색) */
+.btn-read-status.read {
+    background-color: #e8f5e9; /* 연한 초록 배경 */
+    color: #2e7d32;            /* 진한 초록 글씨 */
+    border-color: #c8e6c9;
+}
+
+.btn-read-status:hover {
+    opacity: 0.8;
+}
+
+/* 반응형 처리 */
+@media (max-width: 768px) {
+    .grid-layout {
+        grid-template-columns: 1fr;
+    }
+}
+/* =========================================
+   상세 페이지(bookmarkContent) 전용 스타일 오버라이딩 (V3)
+   ========================================= */
+
+/* 1. 배경 미세 조정 (전역 #222 대신 #121212를 사용하고 싶을 경우) */
+body.dark-mode {
+    background-color: #121212 !important; 
+    color: #e0e0e0 !important;
+}
+
+/* 2. 메인 컨텐츠 영역 (왼쪽 큰 영역) */
+/* .card, .content-box 와 같은 일반적인 컨테이너 클래스를 사용했을 경우에도 덮어쓰기 */
+body.dark-mode .card.main-content,
+body.dark-mode .content-box.main-content {
+    background-color: #1e1e1e !important; /* 카드 배경: 전역 #333 보다 살짝 어둡게 */
+    border: 1px solid #333 !important;
+    padding: 40px;
+}
+
+/* 3. 제목 입력칸 (투명하고 밑줄 스타일 유지) */
+/* HTML에서 제목 입력칸에 id="bookmarkTitle"이 붙어있어야 합니다. */
+body.dark-mode #bookmarkTitle {
+    background-color: transparent !important;
+    border: none !important; 
+    color: #ffffff !important; /* 글자색: 흰색으로 강제 적용 */
+    border-bottom: 2px solid #444 !important; /* 밑줄만 유지 */
+    font-size: 28px;
+    font-weight: 700;
+}
+
+body.dark-mode #bookmarkTitle:focus {
+    border-bottom-color: #3182F6 !important;
+}
+
+/* 4. 본문 텍스트 박스 (#bookmarkContent) - 깔끔한 입력창 스타일 */
+/* HTML에서 본문 영역에 id="bookmarkContent"가 붙어있어야 합니다. */
+body.dark-mode #bookmarkContent {
+    background-color: #252525 !important; /* 입력창 배경: 전역 #444보다 깔끔하게 */
+    color: #d0d0d0 !important; /* 글자색: 밝은 회색으로 강제 적용 */
+    border: 1px solid #333 !important;
+    border-radius: 12px;
+    padding: 25px;
+    line-height: 1.8; /* 가독성을 위한 줄 간격 */
+    /* 기존 input/textarea의 width:100%를 유지하며, padding이 잘 적용되도록 box-sizing 추가 */
+    box-sizing: border-box; 
+    width: 100%;
+}
+
+body.dark-mode #bookmarkContent:focus {
+    background-color: #2a2a2a !important;
+    border-color: #3182F6 !important;
+}
+
+/* 5. 오른쪽 사이드바 카드들 (AI 요약, 메모, 리마인드) */
+/* .widget, .panel을 타겟하되, 배경색을 상세 페이지 톤에 맞게 재정의 */
+body.dark-mode .widget, 
+body.dark-mode .panel,
+body.dark-mode .sidebar-card { 
+    background-color: #1e1e1e !important;
+    color: #fff !important; 
+    border-color: #333 !important;
+    border-radius: 16px;
+}
+
+/* 6. 메모 입력 박스 (.memo-area) 예쁘게 꾸미기 */
+/* HTML에서 메모 입력창에 class="memo-area"가 있다면 이 스타일이 적용됩니다. */
+body.dark-mode .memo-area {
+    background-color: #2a2a2a !important; /* 입력 영역 배경: 전역 #444보다 깔끔하게 */
+    color: #ddd !important;
+    border: 1px solid #444 !important;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+body.dark-mode .memo-area:focus {
+    border-color: #3182F6 !important;
+}
+
+/* 7. 리마인드 영역 가독성 향상 */
+/* 리마인드 시간/날짜를 밝게 */
+body.dark-mode .reminder-setting .time-text,
+body.dark-mode .reminder-setting .date-text {
+    color: #4db8ff !important; /* 파란색 계열로 밝게 강조 */
+    font-weight: 600;
+}
+
+body.dark-mode .reminder-setting p {
+    color: #aaa !important; /* 보조 텍스트는 밝은 회색 */
+}
+
+
+/* 8. 별 아이콘 배경 문제 해결 */
+/* 아이콘 주변에 불필요하게 따라붙는 배경색이 없도록 투명화 */
+body.dark-mode .btn-star,
+body.dark-mode .action-icon {
+    background-color: transparent !important;
+}
+
+/* 별 아이콘 색상 (노란색) */
+body.dark-mode .btn-star {
+    color: #facc15 !important;
+}
+
+/* 9. 기타 텍스트 색상 오버라이딩 */
+body.dark-mode .card-title {
+    color: #fff !important; /* 제목도 강제로 하얀색 */
+}

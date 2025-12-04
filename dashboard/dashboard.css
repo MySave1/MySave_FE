@@ -1,0 +1,475 @@
+/* 기본 설정 및 리셋 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Pretendard', sans-serif;
+}
+
+body {
+    background-color: #f5f7fa;
+    color: #333;
+}
+
+a { text-decoration: none; color: inherit; }
+li { list-style: none; }
+
+/* 헤더 스타일 */
+.top-header {
+    background-color: white;
+    padding: 0 40px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+}
+
+.nav-links li {
+    position: relative;
+    font-weight: 500;
+    color: #777;
+    cursor: pointer;
+    padding: 24px 0;
+}
+
+.nav-links li.active {
+    color: #111;
+    font-weight: 700;
+}
+
+.nav-links li.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #111;
+}
+
+.search-container {
+    position: relative;
+    width: 300px;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 10px 15px;
+    background-color: #f0f2f5;
+    border: none;
+    border-radius: 20px;
+    outline: none;
+}
+
+.search-container i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #777;
+}
+
+/* 메인 컨테이너 */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+/* 상단 버튼 */
+.action-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.btn-primary {
+    background-color: #1e293b;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 통계 카드 그리드 */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+
+.stat-card h3 {
+    font-size: 15px;
+    color: #111;
+    margin-bottom: 15px;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.stat-value .unit {
+    font-size: 14px;
+    font-weight: 400;
+    color: #777;
+}
+
+.stat-value .badge {
+    font-size: 12px;
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    vertical-align: middle;
+    color: #555;
+    margin-left: 5px;
+}
+
+.stat-desc {
+    font-size: 13px;
+    color: #888;
+}
+
+/* 컨텐츠 분할 (좌 2 : 우 1) */
+.content-split {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+/* 공통 섹션 스타일 */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.section-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.more-link {
+    font-size: 13px;
+    color: #777;
+}
+
+/* 최근 저장 목록 카드 */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+}
+
+.card-img {
+    height: 120px;
+    position: relative;
+}
+
+.summary-tag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    color: #3b82f6;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card-body {
+    padding: 15px;
+}
+
+.card-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    height: 40px; /* 2줄 제한 효과를 위해 */
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.tag-badge {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    color: white;
+}
+
+.date-star {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #999;
+}
+
+.star-icon {
+    cursor: pointer;
+}
+.star-icon.active {
+    color: #facc15; /* 노란색 */
+}
+
+/* 사이드바 위젯 */
+.sidebar-widget {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+
+.reminder-list {
+    font-size: 13px;
+}
+
+.day-group {
+    margin-bottom: 20px;
+}
+
+.day-label {
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.dot.blue { background-color: #3b82f6; }
+.dot.yellow { background-color: #facc15; }
+
+.reminder-item {
+    background: white;
+    border: 1px solid #eee;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.reminder-item .time {
+    font-size: 11px;
+    color: #888;
+    font-weight: 600;
+}
+
+/* 태그 */
+.tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag-pill {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: white;
+    font-weight: 500;
+}
+.tag-pill.blue { background-color: #3b5998; }
+.tag-pill.navy { background-color: #475569; }
+
+/* 모바일 대응 (반응형) */
+@media (max-width: 900px) {
+    .stats-grid, .content-split, .card-grid {
+        grid-template-columns: 1fr;
+    }
+    .top-header {
+        padding: 0 20px;
+    }
+    .search-container {
+        display: none; /* 모바일에서 숨김 예시 */
+    }
+    .nav-links {
+        font-size: 14px;
+        gap: 15px;
+    }
+}
+
+/* 북마크 추가하기 */
+/* 1. 모달 레이아웃 */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    width: 400px; /* 확장프로그램 너비와 비슷하게 */
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* 모달 헤더 */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.modal-header h3 { font-size: 18px; font-weight: 700; color: #333; }
+.close-modal { font-size: 28px; cursor: pointer; color: #999; line-height: 1; }
+.close-modal:hover { color: #333; }
+
+/* 2. 입력 필드 (확장프로그램 스타일) */
+.input-section { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+.field-label { 
+    font-size: 13px; font-weight: 600; color: #333; 
+    display: flex; align-items: center; gap: 4px; 
+}
+.label-icon { width: 14px; height: 14px; object-fit: contain; }
+
+.input-box {
+    display: flex; align-items: center;
+    background-color: rgba(52, 82, 130, 0.11); /* 연한 푸른 회색 배경 */
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 0 12px;
+    height: 44px;
+    transition: all 0.2s;
+}
+
+.input-box:focus-within {
+    background-color: white;
+    border-color: rgba(52, 84, 130, 1);
+    box-shadow: 0 0 0 2px rgba(52, 84, 130, 0.1);
+}
+
+.input-box input, .input-box textarea {
+    width: 100%; border: none; background: transparent; outline: none; 
+    font-size: 14px; color: #333;
+}
+
+.textarea-box { height: auto; padding: 12px; }
+.textarea-box textarea { resize: none; height: 80px; line-height: 1.5; }
+
+/* 3. 태그 칩 */
+.tag-container { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag-chip {
+    background-color: #e3f2fd; color: #3182F6;
+    padding: 4px 10px; border-radius: 6px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 4px;
+}
+.tag-chip:hover { background-color: #bbdefb; }
+
+/* 4. 리마인드 & 스위치 */
+.reminder-section .label-row {
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+.switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #3182F6; }
+input:checked + .slider:before { transform: translateX(16px); }
+
+/* 리마인드 날짜 입력창 */
+#reminderOptions { margin-top: 12px; }
+
+.quick-options { display: flex; gap: 8px; margin-bottom: 10px; }
+.quick-btn {
+    flex: 1; padding: 8px 0; border:none;
+    background: rgba(52, 82, 130, 0.11); border-radius: 8px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    color: #555; transition: 0.2s;
+}
+.quick-btn span { font-size: 12px; font-weight: 600; }
+.quick-btn .sub-time { font-size: 10px; color: #999; font-weight: 400; }
+.quick-btn.active {
+    background-color: rgba(52, 84, 130, 0.1); border-color: rgba(52, 84, 130, 1); color: rgba(52, 84, 130, 1);
+}
+.quick-btn.active .sub-time { color: rgba(52, 84, 130, 0.8); }
+
+.dashed-box {
+    width: 100%; height: 44px;
+    border: 1.5px dashed rgba(52, 84, 130, 0.4); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    color: rgba(52, 84, 130, 0.8); font-size: 13px; font-weight: 600;
+    cursor: pointer; background-color: #fafafa; transition: 0.2s;
+}
+.dashed-box:hover { background-color: rgba(52, 84, 130, 0.05); border-color: rgba(52, 84, 130, 1); }
+.hidden-date-input { 
+    position: absolute; 
+    opacity: 0; 
+    pointer-events: none; 
+    height: 0; width: 0;
+}
+
+/* 5. 저장 버튼 */
+.btn-save {
+    width: 100%; height: 48px;
+    background-color: rgba(52, 84, 130, 1); color: white;
+    font-size: 16px; font-weight: 700;
+    border: none; border-radius: 12px; 
+    margin-top: 10px; cursor: pointer; transition: background 0.2s;
+}
+.btn-save:hover { background-color: #1b64da; }

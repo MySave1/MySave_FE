@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmark Reminder</title>
+
+    <!-- 1. 다크모드 스크립트 -->
+   <script src="../theme/theme.js"></script>
+    <!-- 2. 폰트 & 아이콘 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 3. 전역 다크모드 CSS -->
+    <link rel="stylesheet" href="../theme/theme.css">
+    <!-- 4. 페이지별 CSS -->
+    <link rel="stylesheet" href="reminder.css">
+    <script src="theme.js"></script>
+</head>
+<body>
+
+    <header class="top-header">
+        <nav class="navbar">
+            <ul class="nav-links">
+                <li><a href="../dashboard/dashboard.html">대시보드</a></li>
+                <li><a href="../bookmark/bookmark.html">북마크 목록</a></li>
+                <li><a href="../tag/tag.html">태그</a></li>
+                <li class="active"><a href="../reminder/reminder.html">리마인드</a></li>
+                <li><a href="../setting/setting.html">설정</a></li>
+            </ul>
+        </nav>
+        <div class="search-container">
+            <input type="text" placeholder="저장한 글, 태그 검색">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+    </header>
+
+    <main class="main-container reminder-page">
+        
+        <div class="notification-banner">
+            <h2>오늘 마감되는 글 2건이 있어요</h2>
+            <p>미루지 말고 오늘 읽어서 지식을 내 것으로 만드세요.</p>
+        </div>
+
+        <div class="page-content">
+            <h3 class="section-title">타임라인</h3>
+            
+            <div class="timeline-container" id="timelineContainer">
+                </div>
+        </div>
+
+    </main>
+
+    <script src="reminder.js"></script>
+</body>
+</html>

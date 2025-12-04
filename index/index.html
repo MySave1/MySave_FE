@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daum 모바일 클론</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="main-wrapper">
+        <header class="header">
+            <div class="logo">D</div>
+            <div class="search-bar"></div>
+            <div class="search-icons"><i class="fa-solid fa-magnifying-glass"></i></div>
+        </header>
+
+        <nav class="nav-menu">
+            <div class="nav-item"><span class="icon yellow"><i class="fa-solid fa-map-location-dot"></i></span> 지도</div>
+            <div class="nav-item"><span class="icon red"><i class="fa-solid fa-chart-line"></i></span> 금융</div>
+            <div class="nav-item"><span class="icon blue"><i class="fa-regular fa-envelope"></i></span> 메일</div>
+            <div class="nav-item"><span class="icon blue-dark"><i class="fa-solid fa-person-running"></i></span> 스포츠</div>
+            <div class="nav-item"><span class="icon red-dark"><i class="fa-solid fa-mug-hot"></i></span> 카페</div>
+            <div class="nav-item"><span class="icon purple"><i class="fa-solid fa-gamepad"></i></span> 게임</div>
+            <div class="nav-item"><span class="icon black"><i class="fa-solid fa-layer-group"></i></span> 웹툰</div>
+            <div class="nav-item"><span><i class="fa-solid fa-ellipsis"></i></span></div>
+        </nav>
+
+        <main class="grid-container">
+            <div class="column-left">
+                <div class="card ad-banner">
+                    <div class="ad-image" style="background-color: #e8f0fe;"><span style="font-size: 40px;">🥬</span></div>
+                    <div class="ad-text">
+                        <strong>가격할인 해남절임배추 20kg 41,900원</strong>
+                        <p>추가가격인하 해남 절임배추 20kg...</p>
+                    </div>
+                </div>
+
+                <div class="card news-section">
+                    <div class="card-header">
+                        <span class="badge purple"><i class="fa-solid fa-star"></i> 연예</span>
+                        <div class="tabs"><span class="active">종합</span><span>TV하이라이트</span><span>엔터스토리</span></div>
+                    </div>
+                    <div class="news-grid">
+                        <div class="news-item"><div class="thumb" style="background-color: #eee;"></div><p class="title">김새론 모친, 김수현 미성년자 교제 증거 긍...</p><span class="source">티브이데일리</span></div>
+                        <div class="news-item"><div class="thumb" style="background-color: #ddd;"></div><p class="title">"이혼 후 사라지더니.." 풍진경, 발리서 조용중...</p><span class="source">MK스포츠</span></div>
+                    </div>
+                    <div class="text-news-list">
+                        <p>박선주, 26일(오늘) 부친상... 남편 강레오와 빈소...</p>
+                        <p>김대호, MBC 연봉 1억이었다더니 "보너스만 3억...</p>
+                        <p>서장훈, 다시 코트로 돌아간다...5년 만에 '농구예...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column-right">
+                <div class="card login-box">
+                    <div class="user-info">
+                        <div class="avatar"></div><span class="username">김현아</span><button class="btn-logout" onclick="logout()">로그아웃</button>
+                    </div>
+                    <div class="user-links"><a href="#">메일 99+</a><a href="#">카페</a><a href="#">MY</a></div>
+                </div>
+
+                <div class="card weather-widget">
+                    <div class="weather-info"><i class="fa-solid fa-cloud" style="color: #a0c4ff;"></i><div class="weather-text"><strong>삼양동 구름 많음</strong><span>미세 좋음</span></div></div>
+                    <div class="temp"><strong>11.1°</strong><span>12° / 8°</span></div>
+                </div>
+
+                <div class="notice-banner"><i class="fa-solid fa-gear"></i> Daum 로그인 시스템 점검 안내</div>
+
+                <div class="card recommendation-widget">
+                    <div class="widget-header">
+                        <strong>추천 읽을거리</strong> 
+                        <span class="more" onclick="location.href='dashboard.html'" style="cursor: pointer;">더보기 ></span>
+                    </div>
+                    <div class="mini-card-grid" id="miniCardGrid"></div>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

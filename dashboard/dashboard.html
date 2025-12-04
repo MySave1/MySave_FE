@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmark Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <!-- 1. 다크모드 스크립트 -->
+    <script src="../theme/theme.js"></script>
+    <!-- 2. 폰트 & 아이콘 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 3. 전역 다크모드 CSS -->
+    <link rel="stylesheet" href="../theme/theme.css">
+    <!-- 4. 페이지별 CSS -->
+    <script src="theme.js"></script>
+</head>
+<body>
+
+    <header class="top-header">
+        <nav class="navbar">
+            <ul class="nav-links">
+                <li class="active"><a href="../dashboard/dashboard.html">대시보드</a></li>
+                <li><a href="../bookmark/bookmark.html">북마크 목록</a></li>
+                <li><a href="../tag/tag.html">태그</a></li>
+                <li><a href="../reminder/reminder.html">리마인드</a></li>
+                <li><a href="../setting/setting.html">설정</a></li>
+            </ul>
+        </nav>
+        <div class="search-container">
+            <input type="text" placeholder="저장한 글, 태그 검색">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        
+        <div class="action-row">
+            <button class="btn-primary" id="openAddModalBtn">
+                <i class="fa-regular fa-bookmark"></i> 북마크 추가하기
+            </button>
+        </div>
+
+        <div id="addBookmarkModal" class="modal-overlay" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>북마크 직접 추가</h3>
+                    <span class="close-modal">&times;</span>
+                </div>
+        
+                <div class="modal-body">
+                    <div class="input-section">
+                        <label class="field-label">
+                            <i class="fa-solid fa-link" style="color:#555; margin-right:4px;"></i> URL
+                        </label>
+                        <div class="input-box url-box">
+                            <input type="text" id="newUrl" placeholder="https://example.com">
+                        </div>
+                    </div>
+        
+                    <div class="input-section">
+                        <label class="field-label">제목</label>
+                        <div class="input-box">
+                            <input type="text" id="newTitle" placeholder="제목을 입력하세요">
+                        </div>
+                    </div>
+        
+                    <div class="input-section">
+                        <label class="field-label">메모 / 요약</label>
+                        <div class="input-box textarea-box">
+                            <textarea id="newContent" placeholder="주요 내용을 입력하세요"></textarea>
+                        </div>
+                    </div>
+        
+                    <div class="input-section">
+                        <label class="field-label">태그</label>
+                        <div class="input-box">
+                            <input type="text" id="newTagInput" placeholder="태그 입력 후 엔터 (예: Design)">
+                        </div>
+                        <div id="newTagContainer" class="tag-container" style="margin-top: 8px;"></div>
+                    </div>
+        
+                    <div class="input-section reminder-section" style="margin-top: 15px;">
+                        <div class="label-row" style="display:flex; justify-content:space-between; align-items:center;">
+                            <label class="field-label"><i class="fa-solid fa-bell"></i> 리마인드 설정</label>
+                            <label class="switch">
+                                <input type="checkbox" id="newReminderToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div id="newReminderOptions" style="display: none; margin-top: 10px;">
+    
+                            <div class="quick-options">
+                                <button class="quick-btn" id="btnTomorrow">
+                                    <span>내일</span>
+                                    <span class="sub-time">09:00</span>
+                                </button>
+                                <button class="quick-btn" id="btnWeekend">
+                                    <span>이번 주말</span>
+                                    <span class="sub-time">토 10:00</span>
+                                </button>
+                                <button class="quick-btn" id="btnNextWeek">
+                                    <span>다음 주</span>
+                                    <span class="sub-time">월 09:00</span>
+                                </button>
+                            </div>
+                        
+                            <div class="dashed-box" id="calendarTrigger">
+                                <i class="fa-regular fa-calendar-plus"></i>
+                                <span id="dateDisplay">직접 날짜 / 시간 선택하기</span>
+                            </div>
+                        
+                            <input type="datetime-local" id="newReminderDate" class="hidden-date-input">
+                        </div>
+                    </div>
+        
+                    <button id="saveNewBookmarkBtn" class="btn-save">저장하기</button>
+                </div>
+            </div>
+        </div>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <h3>오늘 저장한 글</h3>
+                <div class="stat-value">3 <span class="unit">건</span></div>
+                <p class="stat-desc">어제보다 많이 저장...</p>
+            </div>
+            <div class="stat-card">
+                <h3>미완료 리마인드</h3>
+                <div class="stat-value">
+                    <span id="totalReminderCount">0</span> <span class="unit">건</span>
+                </div>
+                <p class="stat-desc" id="todayReminderDesc">오늘 마감되는 항목 0 건</p>
+            </div>
+            <div class="stat-card">
+                <h3>가장 자주 쓴 태그</h3>
+                <div class="stat-value">AI <span class="badge">Top 1</span></div>
+                <p class="stat-desc">최근 7일간 가장 많이 사용됨</p>
+            </div>
+            <div class="stat-card">
+                <h3>주간 읽기 달성률</h3>
+                <div class="stat-value">
+                    <span id="weeklyRate">0</span> <span class="unit">%</span>
+                </div>
+                <p class="stat-desc" id="weeklyDesc">데이터 계산 중...</p>
+            </div>
+        </section>
+
+        <div class="content-split">
+            
+            <section class="recent-section">
+                <div class="section-header">
+                    <h2>최근 저장 목록</h2>
+                    <a href="../bookmark/bookmark.html" class="more-link">더보기</a>
+                </div>
+                <div class="card-grid" id="cardContainer"></div>
+            </section>
+
+            <aside class="sidebar">
+                <div class="sidebar-widget">
+                    <div class="section-header">
+                        <h2>예정된 리마인드</h2>
+                        <a href="../reminder/reminder.html" class="more-link">더보기</a>
+                    </div>
+                    <div class="reminder-list" id="sidebarReminderList">
+                        <p style="padding: 20px; text-align: center; color: #aaa; font-size: 13px;">
+                            일정을 불러오는 중...
+                        </p>
+                    </div>
+                </div>
+
+                <div class="sidebar-widget">
+                    <div class="section-header">
+                        <h2>자주 쓰는 태그</h2>
+                        <a href="../tag/tag.html" class="more-link">더보기</a>
+                    </div>
+                    <div class="tag-cloud">
+                        <span class="tag-pill blue">#AI</span>
+                        <span class="tag-pill navy">#뉴스</span>
+                        <span class="tag-pill navy">#Work</span>
+                        <span class="tag-pill navy">#Dev</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

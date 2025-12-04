@@ -1,0 +1,220 @@
+/* ================= 기본 설정 (공통) ================= */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Pretendard', sans-serif;
+}
+
+body {
+    background-color: #f5f7fa;
+    color: #333;
+}
+
+a { text-decoration: none; color: inherit; }
+li { list-style: none; }
+button { border: none; background: none; cursor: pointer; }
+
+/* 헤더 스타일 */
+.top-header {
+    background-color: white;
+    padding: 0 40px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-links { display: flex; gap: 30px; }
+.nav-links li { position: relative; font-weight: 500; color: #777; padding: 24px 0; }
+.nav-links li.active { color: #111; font-weight: 700; }
+.nav-links li.active::after {
+    content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background-color: #111;
+}
+
+.search-container { position: relative; width: 300px; }
+.search-container input {
+    width: 100%; padding: 10px 15px 10px 40px; background-color: #f0f2f5;
+    border: none; border-radius: 20px; outline: none; font-size: 14px;
+}
+.search-container i {
+    position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999;
+}
+
+/* 메인 컨테이너 */
+.main-container {
+    max-width: 900px; /* 리마인드 페이지는 폭을 조금 좁게 */
+    margin: 30px auto;
+    padding: 0 20px 60px;
+}
+
+/* ================= 리마인드 페이지 전용 스타일 ================= */
+
+/* 1. 알림 배너 */
+.notification-banner {
+    background-color: #1a6dff; /* 선명한 파란색 */
+    color: white;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 40px;
+    box-shadow: 0 4px 20px rgba(26, 109, 255, 0.25);
+}
+
+.notification-banner h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.notification-banner p {
+    font-size: 14px;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* 2. 타임라인 영역 */
+.page-content {
+    background-color: white;
+    padding: 40px;
+    border-radius: 16px;
+    min-height: 600px; /* 흰색 배경 영역 확보 */
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: #111;
+}
+
+/* 타임라인 그룹 */
+.timeline-group {
+    position: relative;
+    padding-left: 20px; /* 왼쪽 여백 */
+    margin-bottom: 40px;
+}
+
+/* 날짜 헤더 (점 + 텍스트) */
+.date-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 16px;
+    position: relative;
+}
+
+/* 날짜 옆의 색깔 점 */
+.dot-wrapper {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.dot-wrapper.blue { background-color: rgba(59, 130, 246, 0.2); }
+.dot-wrapper.yellow { background-color: rgba(251, 191, 36, 0.2); }
+.dot-wrapper.pink { background-color: rgba(255, 107, 107, 0.2); }
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+.dot.blue { background-color: #3b82f6; }
+.dot.yellow { background-color: #fbbf24; }
+.dot.pink { background-color: #ff6b6b; }
+
+/* 리스트 아이템들을 감싸는 컨테이너 (회색 수직선 포함) */
+.timeline-items {
+    position: relative;
+    padding-left: 32px; /* 아이템 들여쓰기 */
+    border-left: 2px solid #f0f0f0; /* 회색 줄 */
+    margin-left: 11px; /* 점의 중앙에 줄을 맞춤 */
+}
+
+/* 마지막 그룹의 줄은 없애거나 투명하게 처리하고 싶을 때 */
+.timeline-group:last-child .timeline-items {
+    border-left: 2px solid transparent; 
+}
+
+/* 개별 리마인드 카드 */
+.reminder-item {
+    background-color: #f3f4f6;
+    border-radius: 12px;
+    padding: 20px 25px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.reminder-item:hover {
+    background-color: #e5e7eb;
+}
+
+.item-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.item-icon {
+    width: 44px;
+    height: 44px;
+    background-color: white;
+    border-radius: 50%;
+    /* 이미지 대신 흰 원만 표시 */
+}
+
+.item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.item-time {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111;
+}
+
+.item-title {
+    font-size: 14px;
+    color: #555;
+}
+
+.item-link-text {
+    font-size: 11px;
+    color: #999;
+}
+
+.item-action {
+    color: #999;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+.item-action:hover {
+    color: #555;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .top-header { padding: 0 20px; }
+    .search-container { display: none; }
+    .page-content { padding: 20px; }
+    .reminder-item { padding: 15px; }
+    .item-icon { display: none; } /* 모바일에서 아이콘 숨김 */
+}
