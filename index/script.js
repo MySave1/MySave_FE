@@ -73,7 +73,5 @@ function goToDetailFromIndex(id) {
     
     // 수정 모드는 끄고 이동
     localStorage.setItem('editMode', 'false');
-
-    // 이동
     window.location.href = 'bookmarkcontent.html';
 }
