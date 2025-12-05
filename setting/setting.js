@@ -21,7 +21,7 @@ function getSetting(key, defaultValue = false) {
 }
 
 /* ---------------------------
-    1. 다크 모드 (개선됨!)
+    1. 다크 모드
 ---------------------------- */
 function initDarkMode() {
     const toggle = document.getElementById("darkModeToggle");
