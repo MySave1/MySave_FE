@@ -69,7 +69,6 @@ function goToDetailFromIndex(id) {
     // 상세 페이지가 어떤 글을 보여줄지 ID 저장
     localStorage.setItem('currentBookmarkId', id);
     
-    // ★ 중요: 'index' 페이지에서 왔다고 표시 (나중에 '목록으로' 눌렀을 때 여기로 돌아오게 함)
     localStorage.setItem('previousPage', 'index'); 
     
     // 수정 모드는 끄고 이동
