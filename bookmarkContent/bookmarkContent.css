@@ -178,7 +178,7 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
 .article-body p {
     font-size: 16px;
     line-height: 1.6;
-    color: #4E5968;
+    color: #ffffff;
     margin-bottom: 16px;
 }
 
@@ -212,15 +212,28 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
     min-height: 60px;
 }
 
-.card-content textarea {
+/* ==============================================
+   [수정됨] 메모장 스타일 (라이트 모드 기본)
+   ============================================== */
+
+textarea {
     width: 100%;
-    border: none;
-    resize: none;
-    font-size: 14px;
-    outline: none;
-    background: transparent;
-    font-family: inherit;
-    color: #333;
+    background-color: #f9f9f9 !important;    /* 아주 연한 회색 배경 */
+    border: 1px solid #e0e0e0 !important;    /* 테두리는 아주 연하게 */
+    border-radius: 15px !important;          /* 둥글게 */
+    color: #333 !important;                  /* 글자색: 진한 회색 (중요) */
+    padding: 15px !important;                /* 내부 여백 */
+    font-size: 15px !important;
+    resize: none;                            /* 크기 조절 화살표 제거 (깔끔함) */
+    outline: none !important;                /* ★ 못생긴 파란 네모 박스 제거 ★ */
+    transition: all 0.2s ease;               /* 부드러운 효과 */
+}
+
+/* 메모장 입력하려고 클릭했을 때 */
+textarea:focus {
+    background-color: #fff !important;       /* 배경이 흰색으로 밝아짐 */
+    border-color: #3182F6 !important;        /* 테두리만 예쁜 파란색으로 변경 */
+    box-shadow: 0 0 0 4px rgba(49, 130, 246, 0.1) !important; /* 파란색이 은은하게 번짐 */
 }
 
 .card-footer {
@@ -274,9 +287,6 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
         grid-template-columns: 1fr;
     }
 }
-/* =========================================
-   상세 페이지(bookmarkContent) 전용 스타일 오버라이딩 (V3)
-   ========================================= */
 
 /* 1. 배경 미세 조정 (전역 #222 대신 #121212를 사용하고 싶을 경우) */
 body.dark-mode {
@@ -377,7 +387,3 @@ body.dark-mode .btn-star {
     color: #facc15 !important;
 }
 
-/* 9. 기타 텍스트 색상 오버라이딩 */
-body.dark-mode .card-title {
-    color: #fff !important; /* 제목도 강제로 하얀색 */
-}

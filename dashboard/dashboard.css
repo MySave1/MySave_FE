@@ -473,3 +473,151 @@ input:checked + .slider:before { transform: translateX(16px); }
     margin-top: 10px; cursor: pointer; transition: background 0.2s;
 }
 .btn-save:hover { background-color: #1b64da; }
+
+/* 카드에 마우스 올렸을 때 삭제 버튼 표시 */
+.card {
+    position: relative;
+}
+
+.card-delete-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    display: none; /* 기본적으로 숨김 */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+    border: none;
+    transition: all 0.2s;
+}
+
+.card-delete-btn i {
+    color: #ff6b6b;
+    font-size: 14px;
+}
+
+.card-delete-btn:hover {
+    background-color: #ff6b6b;
+    transform: scale(1.1);
+}
+
+.card-delete-btn:hover i {
+    color: white;
+}
+
+/* 카드에 호버하면 삭제 버튼 보이기 */
+.card:hover .card-delete-btn {
+    display: flex;
+}
+
+
+/* 다크모드에서 요약됨 배지 */
+body.dark-mode .summary-tag {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    color: #3b82f6 !important;
+}
+
+/* 1. 모달 컨텐츠 박스 (다크 모드 배경) */
+body.dark-mode .modal-content {
+    background: #333 !important; /* 모달 배경: 카드와 동일한 다크 그레이 */
+    border: 1px solid #444;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+/* 2. 모달 제목 및 라벨 */
+body.dark-mode .modal-header h3,
+body.dark-mode .field-label {
+    color: #f5f5f5 !important; /* 제목과 라벨 흰색으로 선명하게 */
+}
+body.dark-mode .close-modal {
+    color: #aaa;
+}
+
+/* 3. [핵심] 입력 필드 (input, textarea) 스타일 - 흰색 배경 + 검은색 글씨 */
+body.dark-mode input[type="text"],
+body.dark-mode input[type="url"],
+body.dark-mode textarea,
+body.dark-mode .input-box input,
+body.dark-mode .input-box textarea {
+    /* 배경: 흰색으로 강제 (가독성 최우선) */
+    background-color: #ffffff !important; 
+    
+    /* 글씨: 검은색으로 강제 */
+    color: #111111 !important; 
+    
+    /* 테두리 및 모양 */
+    border: 1px solid #ddd !important;
+    border-radius: 8px !important; 
+    padding: 12px !important;
+}
+
+/* 4. 플레이스홀더 (안내 문구) */
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+    color: #888 !important; /* 흰색 배경에 잘 보이도록 회색 */
+}
+
+/* 5. 포커스 시 (클릭했을 때) 효과 */
+body.dark-mode input:focus,
+body.dark-mode textarea:focus {
+    background-color: #ffffff !important; 
+    border-color: #3182F6 !important; /* 파란색 테두리 */
+    box-shadow: 0 0 0 2px rgba(49, 130, 246, 0.2) !important;
+}
+
+/* 6. 입력 필드를 감싸는 불필요한 레이어 투명화 (핵심: 이중 배경 제거) */
+body.dark-mode .input-box,
+body.dark-mode .textarea-box {
+    background-color: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+body.dark-mode .btn-save {
+    background-color: #3b5998 !important;
+    color: white !important;
+}
+
+/* 8. 태그 칩 디자인 (모달 내) */
+body.dark-mode .tag-chip {
+    background-color: #3b5998;
+    color: #5a9fd4;
+}
+
+
+/* 1. 읽음 완료 버튼 (.btn-read-status) */
+body.dark-mode .btn-read-status {
+    background-color: #386641 !important; /* 다크모드용 진한 초록색 배경 */
+    color: #c5f0a4 !important;           /* 밝은 연두색 글씨 */
+    border: 1px solid #4d8059 !important;
+}
+
+/* 2. 읽음 완료 체크 표시 아이콘 */
+body.dark-mode .btn-read-status i {
+    color: #c5f0a4 !important; 
+}
+
+/* 3. 읽음 완료 버튼 - 호버 시 */
+body.dark-mode .btn-read-status:hover {
+    background-color: #4CAF50 !important; /* 호버 시 표준 초록색 */
+}
+
+/* 4. 별표 (즐겨찾기) 아이콘 */
+/* 활성화된 별은 노란색으로 고정합니다. */
+body.dark-mode .star-btn,
+body.dark-mode .star-icon,
+body.dark-mode .star-icon.active {
+    background-color: transparent !important; /* 배경 투명 */
+    color: #facc15 !important; /* 노란색으로 고정 */
+}
+
+/* 5. 안 읽음 상태의 별 (테두리만 있는 별) */
+body.dark-mode .star-btn.fa-regular {
+    color: #888 !important; /* 비활성화 상태에서는 회색 */
+}

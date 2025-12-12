@@ -1,4 +1,6 @@
+// =============================
 // 1. 초기 데이터
+// =============================
 const initialDashboardData = [
     { 
         id: 1, 
@@ -67,7 +69,9 @@ const initialDashboardData = [
     }
 ];
 
-// 2. 데이터 가져오기 및 저장
+// =============================
+// 2. 로컬 스토리지 접근 함수
+// =============================
 function getDashboardData() {
     const stored = localStorage.getItem('bookmarks');
     if (!stored) {
@@ -81,7 +85,45 @@ function saveDashboardData(newData) {
     localStorage.setItem('bookmarks', JSON.stringify(newData));
 }
 
-// 3. 화면 렌더링 (메인 카드)
+// =============================
+// 3. 삭제 기능 (데이터 및 화면 갱신)
+// =============================
+function deleteBookmark(id) {
+    if (!confirm('정말로 이 북마크를 삭제하시겠습니까?')) {
+        return;
+    }
+    
+    let allData = getDashboardData();
+    const filtered = allData.filter(item => item.id !== id);
+    saveDashboardData(filtered);
+    
+    // 화면 갱신을 위해 현재 검색 상태를 확인
+    const searchInput = document.querySelector('.search-container input');
+    const keyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    
+    if (keyword) {
+        // 검색 중이면 검색 결과만 다시 표시
+        const searchFiltered = filtered.filter(item => 
+            item.title.toLowerCase().includes(keyword) || 
+            item.tag.toLowerCase().includes(keyword)
+        );
+        renderCards(searchFiltered);
+    } else {
+        // 검색 중이 아니면 최신 6개 표시 (대시보드 기준)
+        filtered.sort((a, b) => b.date.localeCompare(a.date));
+        renderCards(filtered.slice(0, 6));
+    }
+    
+    // 사이드바와 통계도 갱신
+    renderSidebarReminders();
+    updateDashboardStats();
+
+    alert("삭제가 완료되었습니다.");
+}
+
+// =============================
+// 4. 카드 렌더링
+// =============================
 function renderCards(data) {
     const cardContainer = document.getElementById('cardContainer');
     if (!cardContainer) return;
@@ -97,8 +139,6 @@ function renderCards(data) {
             ? `<img src="${item.image}" style="width:100%; height:100%; object-fit:cover; border-radius: inherit;">` 
             : '<span class="summary-tag">요약됨</span>';
 
-        // 리마인드 배지 표시 로직
-        // 리마인드가 있으면 파란색 배지, 없으면 일반 날짜 표시
         const reminderBadge = item.reminderTime 
             ? `
             <div style="
@@ -127,6 +167,11 @@ function renderCards(data) {
                 ${reminderBadge} ${unreadBadge}
                 ${imageContent}
             </div>
+
+            <button class="card-delete-btn" title="삭제">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+
             <div class="card-body">
                 <h4 class="card-title">${item.title}</h4>
                 <div class="card-footer">
@@ -150,26 +195,31 @@ function renderCards(data) {
                     saveDashboardData(allData);
                 }
             }
-            // 이동 전 필요한 정보 저장
             localStorage.setItem('currentBookmarkId', item.id);
             localStorage.setItem('previousPage', 'dashboard');
             localStorage.setItem('editMode', 'false');
             window.location.href = `/bookmarkContent/bookmarkContent.html?id=${item.id}&from=dashboard`;
-            
         });
 
-        // 별표 클릭 (이동 방지)
+        // ⭐ 별표 클릭 이벤트 (이동 방지)
         const starBtn = card.querySelector('.star-btn');
         starBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             toggleStar(starBtn, item.id);
         });
 
+        // ⭐ 삭제 버튼 클릭 이벤트
+        const deleteBtn = card.querySelector('.card-delete-btn');
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // 카드 클릭 이벤트 방지
+            deleteBookmark(item.id); // 전역 deleteBookmark 함수 호출
+        });
+
         cardContainer.appendChild(card);
     });
 }
 
-// 4. 별표 토글
+// 5. 별표 토글 (기존 코드 유지)
 function toggleStar(element, id) {
     const allData = getDashboardData();
     const targetItem = allData.find(item => item.id === id);
@@ -188,12 +238,14 @@ function toggleStar(element, id) {
             element.style.color = '#ccc';
         }
     }
+    // 갱신 후 통계 업데이트
+    updateDashboardStats();
 }
 
-// 5. 사이드바 리마인드 렌더링 함수
+// 6. 사이드바 리마인드 렌더링 함수 (기존 코드 유지)
 function renderSidebarReminders() {
     const container = document.getElementById('sidebarReminderList');
-    if (!container) return; // 사이드바가 없으면 패스
+    if (!container) return; 
 
     const bookmarks = getDashboardData();
     const reminders = bookmarks.filter(item => item.reminderTime);
@@ -203,7 +255,6 @@ function renderSidebarReminders() {
         return;
     }
 
-    // 날짜별 분류
     const groups = { today: [], tomorrow: [] };
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -219,11 +270,9 @@ function renderSidebarReminders() {
         else if (diffDays === 1) groups.tomorrow.push(item);
     });
 
-    // 정렬
     groups.today.sort((a, b) => new Date(a.reminderTime) - new Date(b.reminderTime));
     groups.tomorrow.sort((a, b) => new Date(a.reminderTime) - new Date(b.reminderTime));
 
-    // HTML 그리기
     container.innerHTML = '';
     
     if (groups.today.length > 0) {
@@ -234,11 +283,11 @@ function renderSidebarReminders() {
     }
 
     if (groups.today.length === 0 && groups.tomorrow.length === 0) {
-         container.innerHTML = `<div style="padding: 20px; text-align: center; color: #aaa; font-size: 13px;">오늘, 내일 일정이 없습니다.<br><a href="reminder.html" style="color:#3182F6">전체 보기</a></div>`;
+         container.innerHTML = `<div style="padding: 20px; text-align: center; color: #aaa; font-size: 13px;">오늘, 내일 일정이 없습니다.<br><a href="../reminder/reminder.html" style="color:#3182F6">전체 보기</a></div>`;
     }
 }
 
-// 사이드바 그룹 HTML 생성 헬퍼
+// 사이드바 그룹 HTML 생성 헬퍼 (기존 코드 유지)
 function createSidebarGroupHTML(label, color, items) {
     const listHTML = items.map(item => `
         <div class="reminder-item" onclick="location.href='bookmarkcontent.html?id=${item.id}&from=dashboard'" style="cursor: pointer;">
@@ -256,39 +305,31 @@ function createSidebarGroupHTML(label, color, items) {
 }
 
 
-// 6. 상단 통계 카드 업데이트 함수
+// 7. 상단 통계 카드 업데이트 함수 (기존 코드 유지)
 function updateDashboardStats() {
-    // DOM 요소 가져오기
     const totalReminderEl = document.getElementById('totalReminderCount');
     const todayReminderDescEl = document.getElementById('todayReminderDesc');
     const weeklyRateEl = document.getElementById('weeklyRate');
     const weeklyDescEl = document.getElementById('weeklyDesc');
     
-    // 요소가 하나라도 없으면 중단
     if (!totalReminderEl || !todayReminderDescEl || !weeklyRateEl || !weeklyDescEl) return;
 
-    // 데이터 준비
     const bookmarks = getDashboardData();
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
-    // 카운터 변수 초기화
-    let totalIncompleteCount = 0; // 미완료 리마인드
-    let todayDueCount = 0;        // 오늘 마감 리마인드
+    let totalIncompleteCount = 0; 
+    let todayDueCount = 0;        
     
-    let totalSavedCount = bookmarks.length; // 전체 저장된 글 개수
-    let totalReadCount = 0;                 // 전체 읽은 글 개수
+    let totalSavedCount = bookmarks.length; 
+    let totalReadCount = 0;                 
 
-    // 데이터 순회하며 계산
     bookmarks.forEach(item => {
-        // 리마인드 통계 계산
         if (item.reminderTime) {
-            // 안 읽은 리마인드 개수 (큰 숫자)
             if (!item.isRead) {
                 totalIncompleteCount++; 
             }
 
-            // 오늘 마감 개수 (작은 설명)
             const targetDate = new Date(item.reminderTime);
             const targetDayStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
             const diffDays = Math.ceil((targetDayStart - todayStart) / (1000 * 60 * 60 * 24));
@@ -297,19 +338,14 @@ function updateDashboardStats() {
                 todayDueCount++; 
             }
         }
-
-        // 전체 읽기 달성률 계산 
         if (item.isRead) {
             totalReadCount++;
         }
     });
 
-    // 화면 업데이트
-    // (1) 리마인드 통계 반영
     totalReminderEl.textContent = totalIncompleteCount;
     todayReminderDescEl.textContent = `오늘 마감되는 항목 ${todayDueCount} 건`;
 
-    // (2) 전체 읽기 달성률 반영
     let percentage = 0;
     if (totalSavedCount > 0) {
         percentage = Math.round((totalReadCount / totalSavedCount) * 100);
@@ -319,43 +355,39 @@ function updateDashboardStats() {
     weeklyDescEl.textContent = `전체 ${totalSavedCount}개 중 ${totalReadCount}개 읽음`;
 }
 
-// 7. 실행
+// 8. 실행
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. 전체 데이터 가져오기
+    // 1. 초기 렌더링
     const allData = getDashboardData();
-    
-    // 2. 최신순 정렬 (날짜 내림차순)
     allData.sort((a, b) => b.date.localeCompare(a.date));
-
-    // 3. 상위 6개만 자르기
-    const recentData = allData.slice(0, 6);
+    renderCards(allData.slice(0, 6));
     
-    // 4. 잘라낸 데이터로 카드 그리기
-    renderCards(recentData);
-    
-    // 나머지 기능 실행
     renderSidebarReminders();
     updateDashboardStats();
 
-    // 검색 기능 (검색할 때는 6개 제한 없이 검색된 것 다 보여줌)
+    // 2. 검색 기능
     const searchInput = document.querySelector('.search-container input');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase().trim();
-            const currentData = getDashboardData(); // 다시 전체 데이터 가져옴
+            const currentData = getDashboardData();
             
-            // 검색어 필터링
-            const filtered = currentData.filter(item => 
-                item.title.toLowerCase().includes(keyword) || 
-                item.tag.toLowerCase().includes(keyword)
-            );
-            
-            // 검색 중일 때는 개수 제한 없이
-            renderCards(filtered);
+            if (keyword === "") {
+                // 검색어 없으면 최신순 6개 표시
+                currentData.sort((a, b) => b.date.localeCompare(a.date));
+                renderCards(currentData.slice(0, 6));
+            } else {
+                // 검색어 있으면 필터링된 결과 전부 표시
+                const filtered = currentData.filter(item => 
+                    item.title.toLowerCase().includes(keyword) || 
+                    item.tag.toLowerCase().includes(keyword)
+                );
+                renderCards(filtered);
+            }
         });
     }
 
-    // 북마크 추가하기
+    // 3. 모달 및 북마크 추가 기능 (기존 코드 유지)
     const addModal = document.getElementById('addBookmarkModal');
     const openModalBtn = document.getElementById('openAddModalBtn');
     const closeModalBtn = document.querySelector('.close-modal');
@@ -376,7 +408,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentTags = []; 
 
-    // 모달 열기
     if (openModalBtn) {
         openModalBtn.addEventListener('click', () => {
             newUrlInput.value = '';
@@ -392,7 +423,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 모달 닫기
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', () => {
             addModal.style.display = 'none';
@@ -403,7 +433,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === addModal) addModal.style.display = 'none';
     });
 
-    // 태그 입력
     newTagInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -430,13 +459,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 날짜 포맷 함수 (로컬 시간 ISOString)
     function formatDateTime(date) {
         const offset = date.getTimezoneOffset() * 60000;
         return (new Date(date - offset)).toISOString().slice(0, 16);
     }
 
-    // 화면 날짜 표시 업데이트 함수
     function updateDateDisplay(dateStr) {
         if(!dateStr) {
             if (dateDisplay) dateDisplay.innerText = "직접 날짜 / 시간 선택하기";
@@ -460,7 +487,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 빠른 날짜 계산 함수
     function setQuickDate(daysToAdd, hour) {
         const d = new Date();
         d.setDate(d.getDate() + daysToAdd);
@@ -468,7 +494,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return d;
     }
 
-    // 빠른 날짜 적용 함수
     function applyQuickDate(dateObj, btnId) {
         const formatted = formatDateTime(dateObj);
         newReminderDate.value = formatted;
@@ -477,7 +502,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById(btnId).classList.add('active');
     }
 
-    // 리마인드 토글 이벤트
     newReminderToggle.addEventListener('change', (e) => {
         if (e.target.checked) {
             newReminderOptions.style.display = 'block';
@@ -500,13 +524,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 날짜 변경 시 화면 업데이트
     newReminderDate.addEventListener('change', () => {
         quickBtns.forEach(b => b.classList.remove('active'));
         updateDateDisplay(newReminderDate.value);
     });
 
-    // 버튼 이벤트 연결 (내일, 주말, 다음주)
     const btnTomorrow = document.getElementById('btnTomorrow');
     if (btnTomorrow) {
         btnTomorrow.addEventListener('click', function() {
@@ -538,14 +560,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-   // 저장하기
    saveNewBtn.addEventListener('click', () => {
     const title = newTitleInput.value.trim();
-    let url = newUrlInput.value.trim(); // const -> let으로 변경 (수정 가능하게)    
+    let url = newUrlInput.value.trim(); 
     if (!title) { alert('제목을 입력해주세요.'); return; }
 
-    // URL 처리 로직 추가
-    // URL이 입력되었는데, http:// 나 https:// 로 시작하지 않는다면 앞에 https:// 를 붙여준다.
+    const newMemoInput = document.getElementById('newMemo');
+
     if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
         url = 'https://' + url;
     }
@@ -564,8 +585,8 @@ document.addEventListener('DOMContentLoaded', () => {
         isRead: false,
         hasSummary: !!newContentInput.value,
         
-        content: newContentInput.value, // 카드에 미리보기로 뜰 내용 (요약)
-        memo: newContentInput.value,    // 상세 페이지 '메모'란에 들어갈 내용
+        content: newContentInput.value, 
+        memo: newMemoInput.value,    
         
         image: '', 
         reminderTime: newReminderToggle.checked && newReminderDate.value ? new Date(newReminderDate.value).toISOString() : null
@@ -581,7 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSidebarReminders();
     updateDashboardStats();
 
-        addModal.style.display = 'none';
-        alert('북마크가 추가되었습니다.');
+    addModal.style.display = 'none';
+    alert('북마크가 추가되었습니다.');
     });
 });

@@ -108,7 +108,7 @@ function renderReminderUI(data) {
         <strong style="display:block; margin-bottom: 8px; color:#3182F6; font-size: 16px;">
             ${dateStr} ${timeStr}
         </strong>
-        <span style="color: #555;">에 알림이 울립니다. 🔔</span>
+        <span style="color: #ffffffff;">에 알림이 울립니다. 🔔</span>
         `;        
         toggleBtn.textContent = "시간 수정하기";
         deleteBtn.style.display = "inline-block";
@@ -281,10 +281,18 @@ function setupEventListeners(currentData, allBookmarks) {
             e.preventDefault();
             const previousPage = localStorage.getItem('previousPage');
             
-            if (previousPage === 'dashboard') window.location.href = 'dashboard.html';
-            else if (previousPage === 'reminder') window.location.href = 'reminder.html';
-            else if (previousPage === 'index') window.location.href = 'index.html';
-            else window.location.href = 'bookmark.html';
+            if (previousPage === 'dashboard') {
+                window.location.href = '../dashboard/dashboard.html';
+            } 
+            else if (previousPage === 'reminder') {
+                window.location.href = '../reminder/reminder.html';
+            } 
+            else if (previousPage === 'index') {
+                window.location.href = '../index/index.html';
+            } 
+            else {
+                window.location.href = '../bookmark/bookmark.html'; 
+            }
         });
     }
 

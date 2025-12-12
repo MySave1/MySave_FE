@@ -844,19 +844,12 @@ body.dark select {
     border: 1px solid #555555;            /* 테두리 색도 자연스럽게 */
 }
 
-/* 다크모드일 때 입력창의 안내 문구(placeholder) 색상 */
 body.dark input::placeholder,
 body.dark textarea::placeholder {
     color: #aaaaaa; /* 너무 쨍한 흰색보다는 회색이 눈이 편합니다 */
 }
 
-/* =========================================
-   상세 페이지(bookmarkContent) 전용 스타일 (최종 통합 보강)
-   - 입력 필드의 흰색 배경 및 안 보이는 글자 문제 해결
-   ========================================= */
-
 /* 1. 메인 컨텐츠 영역 배경 (전역 #333 보다 약간 어둡게) */
-/* HTML의 main-content 클래스를 타겟합니다. */
 body.dark-mode .main-content {
     background-color: #1e1e1e !important;
     border: 1px solid #333 !important;
@@ -865,7 +858,6 @@ body.dark-mode .main-content {
 }
 
 /* 2. 제목 입력칸 (#bookmarkTitle) - 투명한 배경과 흰 글씨 */
-/* 전역 input/textarea 스타일을 강력하게 무시 */
 body.dark-mode #bookmarkTitle {
     background-color: transparent !important;
     border: none !important; 
@@ -897,7 +889,6 @@ body.dark-mode #bookmarkContent:focus {
 }
 
 /* 4. 오른쪽 사이드바 카드들 (AI 요약, 메모, 리마인드) */
-/* 전역 카드(.card)나 위젯(.widget, .panel)의 배경을 #1e1e1e로 통일 */
 body.dark-mode .sidebar-card,
 body.dark-mode .widget,
 body.dark-mode .panel {
@@ -909,7 +900,6 @@ body.dark-mode .panel {
 
 /* 5. 메모 입력 박스 (.memo-area) 스타일 */
 body.dark-mode .memo-area {
-    /* 메모 입력창의 배경색을 본문과 동일하게 설정 */
     background-color: #2a2a2a !important; 
     color: #ddd !important;
     border: 1px solid #444 !important;
@@ -918,7 +908,6 @@ body.dark-mode .memo-area {
 }
 
 /* 6. 리마인드 영역 가독성 향상 */
-/* 리마인드 시간/날짜를 밝은 파란색으로 강조 */
 body.dark-mode .reminder-setting .date-text,
 body.dark-mode .reminder-setting .time-text,
 body.dark-mode .reminder-setting span { 
@@ -942,3 +931,220 @@ body.dark-mode .btn-star,
 body.dark-mode .action-icon {
     background-color: transparent !important;
 }
+
+/* 1. [초록색] 저장/수정 완료 기능 */
+body.dark-mode .btn-save,
+body.dark-mode #saveReminderBtn,
+body.dark-mode #editMemoBtn[style*="background-color: #4CAF50"] /* JS로 색상이 바뀔 때도 초록색 유지 */
+body.dark-mode #editMemoBtn {
+    background-color: #4CAF50 !important; /* 진한 초록색 */
+    color: #ffffff !important;
+    border: none !important;
+}
+
+/* 2. [파란색] 일반 작업 및 추가 호출 버튼 (초록색 규칙에 덮어쓰이지 않게 주의) */
+body.dark-mode .btn-light-blue,
+body.dark-mode .quick-btn{
+    background-color: #3182F6 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .btn-primary {
+    background-color: #3b5998 !important; 
+        color: #ffffff !important;
+}
+
+body.dark-mode .btn-primary:hover {
+    background-color: #4a6fa1 !important; 
+}
+
+/* 1. [파란색] 일반 작업 및 추가/수정 호출 버튼 */
+body.dark-mode .btn-light-blue,
+body.dark-mode .quick-btn,
+body.dark-mode #editMemoBtn,           /* 메모 수정 버튼 */
+body.dark-mode .memo-card .btn,
+body.dark-mode .reminder-card .btn,
+body.dark-mode .btn-primary,            /* 북마크 추가하기 버튼 */
+body.dark-mode #addReminderBtn {        /* '리마인드 추가' 버튼의 ID/클래스가 있다면 여기에 추가 */
+    background-color: #3182F6 !important; /* 표준 파란색 */
+    color: #ffffff !important;
+    border: none !important;
+}
+
+
+/* 3. [빨간색] 삭제 버튼 */
+body.dark-mode #deleteReminderBtn,
+body.dark-mode .card-delete-btn,
+body.dark-mode .btn-danger {
+    background-color: #FF5252 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .reminder-card .card-title,
+body.dark-mode .reminder-setting h3 {
+    display: flex !important;              /* 가로 정렬 활성화 */
+    align-items: center !important;        /* 수직 중앙 정렬 (아이콘과 글자 높이 맞추기) */
+    gap: 8px !important;
+}
+
+/* 3. AI 요약 노트 제목/아이콘 최종 확인 (혹시 모를 대비) */
+body.dark-mode .ai-card .card-title,
+body.dark-mode .ai-card .card-title i {
+    color: #3182F6;
+}
+/* 1. 입력 필드 (input, textarea)의 배경을 흰색으로 고정하고 글씨를 검은색으로 강제 */
+body.dark-mode input[type="text"],
+body.dark-mode input[type="url"],
+body.dark-mode textarea,
+body.dark-mode .card textarea,
+body.dark-mode #bookmarkContent,
+body.dark-mode .memo-area,
+body.dark-mode .input-box input,
+body.dark-mode .input-box textarea {
+    /* 배경: 흰색으로 강제 유지 */
+    background-color: #ffffff !important; 
+    
+    /* 글씨: 선명한 검은색으로 강제 */
+    color: #111111 !important; 
+    
+    /* 테두리: 밝은 배경에 맞게 회색으로 유지 */
+    border: 1px solid #ddd !important;
+    
+    /* 포커스 시 효과도 흰색 배경 유지 */
+    box-shadow: none !important;
+}
+
+/* 2. 포커스 시 (클릭했을 때) 효과 - 배경은 흰색, 테두리만 파랗게 */
+body.dark-mode input:focus,
+body.dark-mode textarea:focus {
+    background-color: #ffffff !important; /* 흰색 배경 유지 */
+    border-color: #3182F6 !important;     /* 파란색 테두리 */
+    box-shadow: 0 0 0 2px rgba(49, 130, 246, 0.2) !important;
+}
+
+/* 3. 플레이스홀더 (안내 문구) 색상 조정 (흰 배경에 맞게 진한 회색으로) */
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+    color: #888 !important; 
+}
+
+/* 4. [잔여 배경 제거] 입력 필드를 감싸는 불필요한 레이어 투명화 (핵심!) */
+body.dark-mode .input-box,
+body.dark-mode .textarea-box {
+    background-color: transparent !important; /* 이중 배경 제거 */
+    border: none !important;
+}
+
+body.dark-mode .btn-delete,         /* 일반 삭제 버튼 */
+body.dark-mode #deleteReminderBtn,  /* 리마인드 삭제 버튼 ID */
+body.dark-mode .card-delete-btn,    /* 카드 위에 뜨는 휴지통 아이콘 */
+body.dark-mode .btn-danger {        /* 위험 동작 버튼 */
+    background-color: #FF5252 !important; /* 배경: 선명한 빨간색 */
+    color: #ffffff !important;           /* 글씨/아이콘: 흰색 */
+    border: none !important;
+}
+
+/* 카드 위에 뜨는 휴지통 아이콘의 글씨/아이콘 색상 (글씨가 아닌 아이콘이므로 i 태그 사용) */
+body.dark-mode .card-delete-btn i {
+    color: #ffffff !important; 
+}
+
+/* 1. [입력 필드] 배경 흰색, 글씨 검은색으로 강제 (화이트모드 유지) */
+body.dark-mode input[type="text"],
+body.dark-mode input[type="url"],
+body.dark-mode textarea,
+body.dark-mode .card textarea,
+body.dark-mode #bookmarkContent,
+body.dark-mode .memo-area,
+body.dark-mode .input-box input,
+body.dark-mode .input-box textarea {
+    background-color: #ffffff !important; 
+    color: #111111 !important; 
+    border: 1px solid #ddd !important;
+    border-radius: 8px !important; 
+}
+
+body.dark-mode input:focus,
+body.dark-mode textarea:focus {
+    background-color: #ffffff !important;
+    border-color: #3182F6 !important;
+    box-shadow: 0 0 0 2px rgba(49, 130, 246, 0.2) !important;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+    color: #888 !important; 
+}
+
+/* 2. [버튼 색상 충돌 해결] .btn-primary 색상 최종 고정 (#3b5998) */
+body.dark-mode .btn-primary {
+    /* 배경: #3b5998 (어두운 네이비/푸른색)으로 최강력 강제 적용 */
+    background-color: #3b5998 !important; 
+    color: #ffffff !important;
+}
+
+body.dark-mode .btn-primary:hover {
+    background-color: #4a6fa1 !important; 
+}
+
+/* 3. [저장 버튼] 초록색 (#4CAF50) 고정 */
+body.dark-mode .btn-save,
+body.dark-mode #saveReminderBtn,
+body.dark-mode #saveMainBtn {
+    background-color: #4CAF50 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .btn-save,
+body.dark-mode #saveReminderBtn,
+body.dark-mode #saveMainBtn {
+    /* 배경: #3b5998 (어두운 네이비/푸른색)으로 최강력 강제 적용 */
+    background-color: rgba(52, 84, 130, 1) !important; color: white;
+    border: none !important;
+}
+
+body.dark-mode .btn-save:hover,
+body.dark-mode #saveReminderBtn:hover,
+body.dark-mode #saveMainBtn:hover {
+    /* 마우스 오버 시 색상: 살짝 밝게 */
+    background-color: #4a6fa1 !important; 
+}
+
+
+/* 1. 검색창 컨테이너 레이아웃 고정 및 배경색 (#444) 강제 */
+body.dark-mode .search-container {
+    display: flex !important;
+    align-items: center !important;
+    background-color: #444 !important;     
+    border-radius: 25px !important;
+    height: 40px !important;
+    padding: 0 15px !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 2. 검색 입력 필드 (Input) 스타일 강제 */
+body.dark-mode .search-container input[type="text"] {
+    background-color: transparent !important; /* 배경 투명화 */
+    border: none !important;
+    color: #fff !important;                /* 글씨 흰색 고정 */
+    padding: 0 10px 0 0 !important;        /* 아이콘과의 간격만 남김 */
+    flex-grow: 1 !important;
+    height: 100% !important;
+    box-shadow: none !important;
+    outline: none !important;
+    font-size: 14px !important;
+}
+
+/* 3. 검색 아이콘 (돋보기) */
+body.dark-mode .search-container i.fa-magnifying-glass {
+    color: #aaa !important;
+    font-size: 16px !important;
+    margin-right: 0 !important; /* 아이콘 오른쪽 여백 제거 (input의 padding으로 간격 조절) */
+}
+
+/* 4. 플레이스홀더 */
+body.dark-mode .search-container input::placeholder {
+    color: #888 !important;
+}
+

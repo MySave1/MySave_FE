@@ -28,7 +28,7 @@ function loadAndRenderReminders() {
     // 데이터가 없으면 안내 화면 표시
     if (reminders.length === 0) {
         container.innerHTML = `
-            <div style="text-align:center; padding: 60px 0; color:#999;">
+            <div style="text-align:center; padding: 60px 0; color:#fff;">
                 <i class="fa-regular fa-clock" style="font-size: 48px; margin-bottom: 20px; opacity: 0.5;"></i>
                 <p>설정된 리마인드가 없습니다.</p>
             </div>`;
