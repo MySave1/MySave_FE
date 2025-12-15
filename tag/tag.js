@@ -7,7 +7,10 @@ const defaultTags = [
     { id: 1, name: "Dev", color: "#a0c4ff", dotColor: "#1565c0" },
     { id: 2, name: "Design", color: "#ffadad", dotColor: "#d32f2f" },
     { id: 3, name: "Work", color: "#caffbf", dotColor: "#2e7d32" },
-    { id: 4, name: "Etc", color: "#cfcfcf", dotColor: "#424242" }
+    { id: 4, name: "News", color: "#ffd6a5", dotColor: "#ff6f00" },
+    { id: 5, name: "Idea", color: "#fdffb6", dotColor: "#fbc02d" },
+    { id: 6, name: "Study", color: "#bdb2ff", dotColor: "#673ab7" },
+    { id: 99, name: "Etc", color: "#cfcfcf", dotColor: "#424242" }
 ];
 
 // 현재 선택된 색상 (기본값: Red 계열)

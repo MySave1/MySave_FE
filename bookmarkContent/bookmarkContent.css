@@ -178,7 +178,7 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
 .article-body p {
     font-size: 16px;
     line-height: 1.6;
-    color: #ffffff;
+    color: rgb(83, 83, 83);
     margin-bottom: 16px;
 }
 
@@ -387,3 +387,48 @@ body.dark-mode .btn-star {
     color: #facc15 !important;
 }
 
+/* 태그 뱃지 클릭 가능 표시 */
+#detailTag { cursor: pointer; }
+
+/* select wrapper (화살표 꾸미기 위해 필요) */
+.tag-select-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+}
+
+/* select 자체 */
+#editTagSelect {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 34px 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #3182F6;
+  background: #fff;
+  color: #222;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* 포커스 */
+#editTagSelect:focus {
+  box-shadow: 0 0 0 3px rgba(49,130,246,0.18);
+  border-color: #1d4ed8;
+}
+
+/* 커스텀 화살표 */
+.tag-select-wrapper::after {
+  content: "▾";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 12px;
+  color: #3182F6;
+}

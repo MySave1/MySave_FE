@@ -7,15 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === 'Enter') { // 엔터키를 눌렀을 때만 실행
                 const query = e.target.value.trim();
                 if (query) {
-                    // 검색어를 가지고 북마크 목록 페이지로 이동
-                    // 예: bookmark.html?q=React
-                    window.location.href = `bookmark.html?q=${encodeURIComponent(query)}`;
+                    // 검색어를 가지고 북마크 목록 페이지로 이동 (상대 경로 주의)
+                    // 예: ../bookmark/bookmark.html (폴더 구조에 맞춰 수정 필요)
+                    window.location.href = `../bookmark/bookmark.html?q=${encodeURIComponent(query)}`;
                 }
             }
         });
     }
 });
 
+// 리마인드 불러오기 & 렌더링
 function loadAndRenderReminders() {
     const container = document.getElementById('timelineContainer');
     
@@ -54,7 +55,7 @@ function loadAndRenderReminders() {
 
         // 날짜 차이 계산 (일 단위)
         const diffTime = targetDayStart - todayStart;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
         // 시간 표시 텍스트 생성 (예: "오후 2:00")
         const timeString = targetDate.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
@@ -68,7 +69,8 @@ function loadAndRenderReminders() {
         } else if (diffDays === 1) {
             groups.tomorrow.items.push(displayItem);
         } else if (diffDays > 1) {
-            displayItem.displayTime = `D-${diffDays}`; // 미래 일정은 D-Day로 표시
+            const dateStr = `${targetDate.getMonth() + 1}.${targetDate.getDate()}`;
+            displayItem.displayTime = `${dateStr} (D-${diffDays})`; 
             groups.upcoming.items.push(displayItem);
         }
     });
@@ -103,7 +105,7 @@ function renderGroup(container, group) {
         try { if (item.url) hostname = new URL(item.url).hostname; } catch (e) {}
 
         itemsHTML += `
-            <div class="reminder-item" onclick="goToDetail(${item.id})">
+            <div class="reminder-item" onclick="goToDetail(${item.id})" style="cursor: pointer;">
                 <div class="item-left">
                     <div class="item-icon">
                         <i class="fa-solid fa-bell" style="line-height:44px; display:block; text-align:center; color:#ddd;"></i>
@@ -151,10 +153,10 @@ function updateBannerCount(count) {
     if (bannerTitle) {
         if (count > 0) {
             bannerTitle.innerHTML = `오늘 마감되는 글 <span style="color:#ffeb3b">${count}건</span>이 있어요`;
-            bannerDesc.innerText = "미루지 말고 오늘 읽어서 지식을 내 것으로 만드세요.";
+            if (bannerDesc) bannerDesc.innerText = "미루지 말고 오늘 읽어서 지식을 내 것으로 만드세요.";
         } else {
             bannerTitle.innerText = "오늘 마감되는 글이 없습니다 👏";
-            bannerDesc.innerText = "여유로운 하루네요! 미리 읽을 거리가 있는지 찾아볼까요?";
+            if (bannerDesc) bannerDesc.innerText = "여유로운 하루네요! 미리 읽을 거리가 있는지 찾아볼까요?";
         }
     }
 }
@@ -164,5 +166,5 @@ function goToDetail(id) {
     localStorage.setItem('currentBookmarkId', id);
     localStorage.setItem('previousPage', 'reminder'); // "리마인드 페이지에서 왔음" 표시
     localStorage.setItem('editMode', 'false');
-    window.location.href =  `/bookmarkContent/bookmarkContent.html?id=${id}`;
+    window.location.href = `../bookmarkContent/bookmarkContent.html?id=${id}`;
 }
