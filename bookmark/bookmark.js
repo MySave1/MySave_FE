@@ -1,89 +1,36 @@
-// 1. 초기 더미 데이터 (image 필드 추가됨)
-// 이미지가 필요한 곳에는 URL을 넣고, 없으면 null 또는 ""(빈 문자열)로 둡니다.
-const initialBookmarkData = [
-    { 
-        id: 1, 
-        title: "React 19의 새로운 기능 완벽 정리", 
-        tag: "Dev", 
-        tagColor: "#3b5998", 
-        date: "2025.11.30", // 오늘 날짜로 업데이트됨
-        isStarred: true, 
-        isRead: false, 
-        hasSummary: true, 
-        content: "React 19의 새로운 기능인 Actions...", 
-        aiSummary: "요약...", 
-        memo: "메모...",
-        // [테스트용] 이미지가 있는 경우 (무료 이미지 서비스 URL)
-        image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=1000&auto=format&fit=crop"
-    },
-    { 
-        id: 2, 
-        title: "2025 AI 디자인 트렌드 분석 리포트", 
-        tag: "Design", 
-        tagColor: "#E91E63", 
-        date: "2025.11.20", 
-        isStarred: false, 
-        isRead: true, 
-        hasSummary: false, 
-        content: "2025년 디자인 트렌드는...", 
-        aiSummary: "", 
-        memo: "",
-        // [테스트용] 이미지가 있는 경우
-        image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop"
-    },
-    { 
-        id: 3, 
-        title: "효율적인 팀 커뮤니케이션을 위한 가이드", 
-        tag: "Work", 
-        tagColor: "#2E7D32", 
-        date: "2025.11.19", 
-        isStarred: true, 
-        isRead: true, 
-        hasSummary: true, 
-        content: "비동기 커뮤니케이션의 중요성이...", 
-        aiSummary: "", 
-        memo: "",
-        image: null // [테스트용] 이미지가 없는 경우 -> 글만 나옴
-    },
-    // 나머지 데이터들도 image: null 로 설정한다고 가정
-    { id: 4, title: "프론트엔드 성능 최적화", tag: "Dev", tagColor: "#3b5998", date: "2025.11.18", isStarred: false, isRead: false, hasSummary: true, content: "내용...", aiSummary: "", memo: "", image: null },
-    { id: 5, title: "UX 심리학 법칙", tag: "Design", tagColor: "#E91E63", date: "2025.11.17", isStarred: true, isRead: false, hasSummary: false, content: "내용...", aiSummary: "", memo: "", image: null },
-    { id: 6, title: "노션 활용 꿀팁", tag: "Work", tagColor: "#2E7D32", date: "2025.11.16", isStarred: false, isRead: true, hasSummary: true, content: "내용...", aiSummary: "", memo: "", image: null },
-    { id: 7, title: "타입스크립트 활용", tag: "Dev", tagColor: "#3b5998", date: "2025.11.15", isStarred: true, isRead: true, hasSummary: true, content: "내용...", aiSummary: "", memo: "", image: null },
-    { id: 8, title: "피그마 오토레이아웃", tag: "Design", tagColor: "#E91E63", date: "2025.11.14", isStarred: false, isRead: false, hasSummary: false, content: "내용...", aiSummary: "", memo: "", image: null },
-    { id: 9, title: "리모트 워크 문화", tag: "Work", tagColor: "#2E7D32", date: "2025.11.13", isStarred: false, isRead: true, hasSummary: true, content: "내용...", aiSummary: "", memo: "", image: null },
-];
-
-let currentFilterType = 'all';
-let currentSortOrder = 'latest';
+// ==========================================
+// 1. 상태 변수
+// ==========================================
+let currentFilterType = 'all'; // all, starred, read, unread
+let currentSortOrder = 'latest'; // latest, oldest
 let currentPage = 1;
 const itemsPerPage = 12;
 
+// ==========================================
+// 2. 페이지 로드 및 이벤트 리스너
+// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.querySelector('.search-container input');
-    // 1. URL 파라미터 처리 (다른 페이지에서 넘어온 경우)
-    const urlParams = new URLSearchParams(window.location.search);
-    const searchParam = urlParams.get('q');
-
-    if (searchParam && searchInput) {
-        searchInput.value = searchParam; // 검색어 채우기
-    }
     
-    // 2. 검색창 이벤트 리스너 연결 (변수 재선언 없이 바로 사용)
+    // 1. URL 파라미터 처리 (대시보드/태그 페이지에서 넘어왔을 때)
+    const urlParams = new URLSearchParams(window.location.search);
+    const tagParam = urlParams.get('tag'); 
+    const searchParam = urlParams.get('q'); 
+
     if (searchInput) {
+        if (tagParam) {
+            searchInput.value = `#${tagParam.toUpperCase()}`; // 태그는 대문자로 표시
+        } else if (searchParam) {
+            searchInput.value = searchParam;
+        }
+
         searchInput.addEventListener('input', () => {
-            currentPage = 1;
+            currentPage = 1; 
             renderBookmarks();
         });
     }
 
-    // 초기 데이터 로드
-    if (!localStorage.getItem('bookmarks')) {
-        localStorage.setItem('bookmarks', JSON.stringify(initialBookmarkData));
-    }
-
-    renderBookmarks();
-
+    // 2. 필터 버튼 이벤트
     const filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -95,69 +42,72 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // 3. 정렬 버튼 이벤트
     const sortBtn = document.querySelector('.sort-btn');
     if (sortBtn) {
         sortBtn.addEventListener('click', () => {
-            if (currentSortOrder === 'latest') {
-                currentSortOrder = 'oldest';
-                sortBtn.innerHTML = '오래된순 <i class="fa-solid fa-chevron-up"></i>';
-            } else {
-                currentSortOrder = 'latest';
-                sortBtn.innerHTML = '최신순 <i class="fa-solid fa-chevron-down"></i>';
-            }
+            currentSortOrder = (currentSortOrder === 'latest') ? 'oldest' : 'latest';
+            sortBtn.innerHTML = `${currentSortOrder === 'latest' ? '최신순' : '오래된순'} <i class="fa-solid fa-chevron-${currentSortOrder === 'latest' ? 'down' : 'up'}"></i>`;
             renderBookmarks();
         });
     }
 
-    // 페이지네이션
-    const prevBtn = document.querySelector('.pagination .page-control:first-child');
-    const nextBtn = document.querySelector('.pagination .page-control:last-child');
-
-    prevBtn.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderBookmarks();
-        }
-    });
-
-    nextBtn.addEventListener('click', () => {
-        const totalPages = parseInt(document.querySelector('.page-info').dataset.totalPages || 1);
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderBookmarks();
-        }
-    });
+    renderBookmarks();
+    setupPaginationEvents();
 });
 
+// ==========================================
+// 3. 핵심 렌더링 함수
+// ==========================================
 function renderBookmarks() {
-    const searchQuery = document.querySelector('.search-container input').value;
-    const container = document.getElementById('bookmarkCardContainer');
-    container.innerHTML = '';
+    const targetContainer = document.getElementById('bookmarkCardContainer') || document.querySelector('.card-grid');
+    if (!targetContainer) return;
+    targetContainer.innerHTML = '';
 
-    const bookmarks = JSON.parse(localStorage.getItem('bookmarks'));
+    const searchInput = document.querySelector('.search-container input');
+    const searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
-    // 필터링 및 정렬 로직
+    // 대시보드와 동일한 'bookmarks' 키 사용
+    const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+
+    // --- [1단계] 탭 필터링 ---
     let filteredData = bookmarks;
     if (currentFilterType === 'starred') filteredData = bookmarks.filter(item => item.isStarred);
     else if (currentFilterType === 'read') filteredData = bookmarks.filter(item => item.isRead);
     else if (currentFilterType === 'unread') filteredData = bookmarks.filter(item => !item.isRead);
 
-    if (searchQuery.trim() !== '') {
-        const query = searchQuery.toLowerCase();
-        filteredData = filteredData.filter(item => 
-            item.title.toLowerCase().includes(query) || 
-            item.tag.toLowerCase().includes(query) ||
-            (item.content && item.content.toLowerCase().includes(query))
-        );
+    // --- [2단계] 검색어/태그 필터링 ---
+    if (searchQuery !== '') {
+        if (searchQuery.startsWith('#')) {
+            const tagKeyword = searchQuery.substring(1);
+            filteredData = filteredData.filter(item => 
+                (item.tag || '').toLowerCase().includes(tagKeyword)
+            );
+        } else {
+            filteredData = filteredData.filter(item => 
+                (item.title || '').toLowerCase().includes(searchQuery) || 
+                (item.tag || '').toLowerCase().includes(searchQuery) ||
+                (item.content || '').toLowerCase().includes(searchQuery)
+            );
+        }
     }
 
+    // --- [3단계] 정렬 ---
     filteredData.sort((a, b) => {
-        if (currentSortOrder === 'latest') return b.date.localeCompare(a.date);
-        else return a.date.localeCompare(b.date);
+        const dateA = a.date || '';
+        const dateB = b.date || '';
+        if (currentSortOrder === 'latest') {
+            return dateB.localeCompare(dateA) || b.id - a.id;
+        } else {
+            return dateA.localeCompare(dateB) || a.id - b.id;
+        }
     });
 
+    // --- [4단계] 페이지네이션 ---
     const totalItems = filteredData.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
@@ -167,96 +117,100 @@ function renderBookmarks() {
         pageInfo.dataset.totalPages = totalPages;
     }
 
+    // --- [5단계] 결과 없음 처리 ---
     if (totalItems === 0) {
-        container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888; margin-top: 50px;">검색 결과가 없습니다.</p>';
+        targetContainer.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 100px 0; color: #888;">
+                <i class="fa-regular fa-folder-open" style="font-size: 40px; margin-bottom: 15px; opacity:0.5;"></i>
+                <p>표시할 북마크가 없습니다.</p>
+            </div>`;
         return;
     }
 
-    // 카드 생성 루프
+    // --- [6단계] HTML 카드 생성 ---
     paginatedData.forEach(item => {
-        // 요약 배지 생성
-        const summaryBadge = item.hasSummary 
-            ? `<span class="summary-tag">요약됨</span>` 
-            : `<button class="summary-btn" onclick="event.stopPropagation(); alert('요약 생성 기능 준비중')">요약하기</button>`;
+        const card = document.createElement('div');
+        card.className = 'card';
+        
+        // 요약 태그 스타일 (이미지가 없을 때 배경색만 나오게 처리)
+        let summaryTag = '';
+        if (item.hasSummary) {
+            summaryTag = `<span class="summary-tag" style="display: inline-flex !important; white-space: nowrap !important; align-items: center; justify-content: center; height: 20px; padding: 0 10px; background: rgba(255,255,255,0.9); border-radius: 14px; font-size: 12px; font-weight: 400; color: #3182F6; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: absolute; top: 10px; right: 10px;">요약됨</span>`;
+        } else {
+            summaryTag = `<span class="summary-tag" style="display: inline-flex !important; white-space: nowrap !important; align-items: center; justify-content: center; height: 20px; padding: 0 10px; background: rgba(255, 255, 255, 0.9); border-radius: 14px; font-size: 12px; font-weight: 400; color: #555; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: absolute; top: 10px; right: 10px; cursor: pointer;" onclick="event.stopPropagation();">요약하기</span>`;
+        }
 
         const starClass = item.isStarred ? 'fa-solid fa-star active' : 'fa-regular fa-star';
+        const starColor = item.isStarred ? '#facc15' : '';
 
-        // 이미지가 있는지 확인하여 HTML 조립
-        let imageHTML = '';
-        
-        // 이미지가 있으면: 회색 박스(card-img) + 이미지 태그 + 요약 배지
-        if (item.image) {
-            imageHTML = `
-                <div class="card-img">
-                    <img src="${item.image}" alt="cover image">
-                    ${summaryBadge}
-                </div>
-            `;
-        } 
-        // 이미지가 없으면: imageHTML은 빈 문자열이 됨 (즉, 회색 박스 자체가 생성되지 않음)
-        // 주의: 이미지가 없으면 '요약됨' 배지도 같이 사라집니다. (원하시면 본문 쪽으로 이동 가능)
-
-        const cardHTML = `
-            <div class="card" onclick="goToDetail(${item.id})">
-                ${imageHTML} 
-                <div class="card-body">
-                    <h4 class="card-title">${item.title}</h4>
-                    <div class="card-footer">
-                        <span class="tag-badge" style="background-color: ${item.tagColor}">#${item.tag}</span>
-                        <div class="card-actions">
-                            <span>${item.date}</span>
-                            <i class="fa-solid fa-pen action-icon" onclick="editBookmark(event, ${item.id})"></i>
-                            <i class="fa-regular fa-trash-can action-icon" onclick="event.stopPropagation(); deleteBookmark(${item.id})"></i>
-                            <i class="${starClass} action-icon star-icon" onclick="toggleBookmarkStar(event, ${item.id})"></i>
-                        </div>
+        // 카드 내부 구조
+        card.innerHTML = `
+            <div class="card-img" style="background-color: ${item.bgColor || '#f0f2f5'}; height:160px; position:relative;">
+                ${summaryTag}
+            </div>
+            <div class="card-body" style="padding:15px;">
+                <h4 class="card-title" style="font-size:15px; font-weight:700; margin-bottom:12px; color:#333;">${item.title || '제목 없음'}</h4>
+                <div class="card-footer" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="tag-badge" style="background:${item.tagColor || '#555'}; color:white; padding:3px 10px; border-radius:12px; font-size:11px;">#${item.tag || 'ETC'}</span>
+                    <div class="card-actions" style="display:flex; gap:12px; color:#999; font-size:14px; align-items:center;">
+                        <span style="font-size:12px;">${item.date || ''}</span>
+                        <i class="fa-solid fa-pen" style="cursor:pointer;" onclick="editBookmark(event, ${item.id})"></i>
+                        <i class="fa-regular fa-trash-can" style="cursor:pointer;" onclick="event.stopPropagation(); deleteBookmark(${item.id})"></i>
+                        <i class="${starClass} fa-star" style="cursor:pointer; color:${starColor};" onclick="toggleBookmarkStar(event, ${item.id})"></i>
                     </div>
                 </div>
             </div>
         `;
-        container.innerHTML += cardHTML;
+        
+        card.onclick = () => goToDetail(item.id);
+        targetContainer.appendChild(card);
     });
 }
 
+// ==========================================
+// 4. 기능 함수
+// ==========================================
 function goToDetail(id) {
     localStorage.setItem('currentBookmarkId', id);
     localStorage.setItem('previousPage', 'bookmark');
     localStorage.removeItem('editMode');
-    window.location.href = `/bookmarkContent/bookmarkContent.html?id=${id}`;
+    window.location.href = `../bookmarkContent/bookmarkContent.html?id=${id}`;
 }
 
 function editBookmark(event, id) {
     event.stopPropagation();
-    localStorage.setItem('currentBookmarkId', id)
+    localStorage.setItem('currentBookmarkId', id);
     localStorage.setItem('previousPage', 'bookmark');
     localStorage.setItem('editMode', 'true');
-    window.location.href = `/bookmarkContent/bookmarkContent.html?id=${id}`;
+    window.location.href = `../bookmarkContent/bookmarkContent.html?id=${id}`;
 }
 
 function toggleBookmarkStar(event, id) {
     event.stopPropagation();
-    const element = event.target;
-    if (element.classList.contains('fa-solid')) {
-        element.classList.replace('fa-solid', 'fa-regular');
-        element.classList.remove('active');
-    } else {
-        element.classList.replace('fa-regular', 'fa-solid');
-        element.classList.add('active');
-    }
-    const bookmarks = JSON.parse(localStorage.getItem('bookmarks'));
-    const targetIndex = bookmarks.findIndex(b => b.id === id);
-    if (targetIndex > -1) {
-        bookmarks[targetIndex].isStarred = !bookmarks[targetIndex].isStarred;
+    const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+    const target = bookmarks.find(b => b.id === id);
+    if (target) {
+        target.isStarred = !target.isStarred;
         localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+        renderBookmarks();
     }
 }
 
 function deleteBookmark(id) {
-    if(confirm('정말 삭제하시겠습니까?')) {
-        const bookmarks = JSON.parse(localStorage.getItem('bookmarks'));
-        const newBookmarks = bookmarks.filter(b => b.id !== id);
-        localStorage.setItem('bookmarks', JSON.stringify(newBookmarks));
-        const newTotalPages = Math.ceil(newBookmarks.length / itemsPerPage) || 1;
-        if (currentPage > newTotalPages) currentPage = newTotalPages;
-        renderBookmarks();
-    }
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+    const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+    const newBookmarks = bookmarks.filter(b => b.id !== id);
+    localStorage.setItem('bookmarks', JSON.stringify(newBookmarks));
+    renderBookmarks();
+}
+
+function setupPaginationEvents() {
+    document.querySelector('.page-control:first-child')?.addEventListener('click', () => {
+        if (currentPage > 1) { currentPage--; renderBookmarks(); }
+    });
+    document.querySelector('.page-control:last-child')?.addEventListener('click', () => {
+        const info = document.querySelector('.page-info');
+        const total = info ? parseInt(info.dataset.totalPages) : 1;
+        if (currentPage < total) { currentPage++; renderBookmarks(); }
+    });
 }

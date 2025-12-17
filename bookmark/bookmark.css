@@ -223,6 +223,47 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
 .star-icon.active { color: #facc15; }
 
 
+/* ================= 카드 공통 스타일 수정본 ================= */
+
+.card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    border: 1px solid #f0f0f0;
+    
+    /* [수정] 애니메이션을 부드럽게 만들기 위해 transition 설정 */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
+    /* [추가] 마우스를 올렸을 때 클릭 가능하다는 표시 (손가락 모양) */
+    cursor: pointer; 
+}
+
+/* 1. 마우스를 올렸을 때 (Hover) */
+.card:hover {
+    transform: translateY(-1px); /* 기존보다 조금 더 위로 떠오름 */
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1); /* 그림자를 더 진하게 줘서 입체감 상승 */
+}
+
+/* 2. 마우스를 꾹 눌렀을 때 (Active/Click) */
+.card:active {
+    transform: scale(0.98); /* 버튼처럼 살짝 작아지며 눌리는 느낌 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* 그림자를 줄여서 바닥에 붙은 느낌 */
+    transition: transform 0.1s; /* 누를 때는 빠르게 반응 */
+}
+
+/* [추가] 카드 이미지도 호버 시 살짝 확대되는 효과 (선택사항) */
+.card:hover .card-img img {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+}
+/* 이미지가 영역 밖으로 나가지 않게 하려면 .card-img에 overflow: hidden 필요 */
+.card-img {
+    background-color: #e0e0e0;
+    position: relative;
+    overflow: hidden; /* 추가 */
+}
+
 /* ================= 북마크 목록 페이지 전용 스타일 ================= */
 .filter-sort-row {
     display: flex;
@@ -333,86 +374,86 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
     .stats-grid, .card-grid.dashboard-recent, .card-grid.three-columns { grid-template-columns: 1fr; }
 }
 
-/* 1. 배경과 기본 글자색 */
-body.dark-mode {
-    background-color: #222 !important;
-    color: #eee !important;
+/* ================= 카드 반응형 효과 (Hover & Click) ================= */
+
+/* 1. 카드 기본 스타일 (둥글고 깔끔하게) */
+.card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    /* 부드러운 테두리와 그림자 */
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    
+    /* 애니메이션 설정 (부드러운 움직임) */
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                box-shadow 0.3s ease, 
+                border-color 0.3s ease;
+    
+    /* 마우스 커서를 손가락 모양으로 변경 */
+    cursor: pointer;
+    position: relative; /* 자식 요소 위치 기준점 */
 }
 
-/* 2. 헤더와 카드 배경 어둡게 변경 */
-body.dark-mode .top-header,
-body.dark-mode .card {
-    color: #fff !important;
+/* 2. 마우스를 올렸을 때 (Hover) - 위로 떠오르는 효과 */
+.card:hover {
+    transform: translateY(-2px); /* 위로 쑥 올라옴 */
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12); /* 그림자가 깊어짐 */
 }
 
-/* 3. 제목 및 텍스트 색상 강제 화이트 */
-body.dark-mode h2, 
-body.dark-mode h3, 
-body.dark-mode h4,
-body.dark-mode .card-title {
-    color: #fff !important;
+/* 3. 마우스를 클릭했을 때 (Active) - 꾹 눌리는 효과 */
+.card:active {
+    transform: scale(0.97); /* 전체 크기가 살짝 줄어듦 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 그림자가 사라짐 */
+    transition: transform 0.1s; /* 누를 때는 빠르게 반응 */
 }
 
-/* 4. 네비게이션 메뉴 (중요: 글씨가 안 보이는 문제 해결) */
-body.dark-mode .nav-links li {
-    color: #aaa !important; /* 선택 안 된 메뉴 */
-}
-body.dark-mode .nav-links li.active {
-    color: #fff !important; /* 선택된 메뉴 */
-}
-body.dark-mode .nav-links li.active::after {
-    background-color: #fff !important; /* 밑줄 */
+/* 4. 카드 이미지 확대 효과 (Zoom-in) */
+.card-img {
+    background-color: #e0e0e0;
+    position: relative;
+    overflow: hidden; /* 이미지가 커져도 카드 밖으로 나가지 않게 자름 */
+    height: 120px; /* 기본 높이 */
 }
 
-/* 5. 검색창 입력칸 */
-body.dark-mode .search-container input {
-    background-color: #444 !important;
-    color: #fff !important;
-    border: 1px solid #555 !important;
-}
-
-/* 6. 필터 버튼 (전체, 즐겨찾기 등) */
-body.dark-mode .filter-btn, 
-body.dark-mode .sort-btn {
-    background-color: #333 !important;
-    color: #ccc !important;
-    border-color: #555 !important;
-}
-
-body.dark-mode .filter-btn:hover,
-body.dark-mode .sort-btn:hover {
-    background-color: #444 !important;
-}
-
-/* 활성화된 필터 버튼은 밝게 */
-body.dark-mode .filter-btn.active {
-    background-color: #fff !important;
-    color: #111 !important;
-}
-
-/* 7. 기타 텍스트 (날짜, 아이콘 등) */
-body.dark-mode .card-actions,
-body.dark-mode .page-control {
-    color: #bbb !important;
-}
-
-body.dark-mode .action-icon:hover {
-    color: #fff !important;
-}
-
-/* [추가됨] 카드 이미지 스타일 */
+/* 이미지 태그에 적용할 스타일 (HTML에 img 태그가 있다면) */
 .card-img img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* 비율 유지하면서 꽉 채우기 */
-    display: block;
+    object-fit: cover;
+    transition: transform 0.5s ease; /* 이미지는 천천히 확대 */
 }
 
-/* 이미지가 없을 때 카드가 너무 썰렁해 보이지 않도록 패딩 조정 (선택사항) */
-.card-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%; /* 이미지가 없으면 본문이 높이를 차지 */
-    cursor: pointer;
+/* 카드에 마우스 올리면 이미지만 살짝 확대 */
+.card:hover .card-img img {
+    transform: scale(1.1); 
+}
+
+/* 검색창 컨테이너 */
+.search-container {
+    position: relative;
+    width: 300px;      /* [중요] 너비 300px로 강제 고정 */
+    min-width: 300px;  /* [중요] 더 이상 줄어들지 않게 최소 너비 설정 */
+    flex-shrink: 0;    /* [중요] 화면이 좁아져도 찌그러지지 않음 */
+}
+
+/* 검색 입력창 */
+.search-container input {
+    width: 100%;
+    padding: 10px 40px 10px 20px; /* 오른쪽 아이콘 여백 */
+    background-color: #f0f2f5;
+    border: none;
+    border-radius: 20px;
+    outline: none;
+    font-size: 14px;
+    box-sizing: border-box; /* 테두리 포함 크기 계산 */
+}
+
+/* 검색 아이콘 */
+.search-container i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
 }

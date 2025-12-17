@@ -1,50 +1,46 @@
 // ==========================================
-// 1. 초기 데이터 및 설정
+// 1. 초기 설정 및 데이터
 // ==========================================
 
-// 기본 태그 데이터 (저장된 게 없을 때 사용)
-const defaultTags = [
-    { id: 1, name: "Dev", color: "#a0c4ff", dotColor: "#1565c0" },
-    { id: 2, name: "Design", color: "#ffadad", dotColor: "#d32f2f" },
-    { id: 3, name: "Work", color: "#caffbf", dotColor: "#2e7d32" },
-    { id: 4, name: "News", color: "#ffd6a5", dotColor: "#ff6f00" },
-    { id: 5, name: "Idea", color: "#fdffb6", dotColor: "#fbc02d" },
-    { id: 6, name: "Study", color: "#bdb2ff", dotColor: "#673ab7" },
-    { id: 99, name: "Etc", color: "#cfcfcf", dotColor: "#424242" }
-];
+const defaultTags = [];
 
-// 현재 선택된 색상 (기본값: Red 계열)
-let selectedColorBg = "#ffadad";
-let selectedColorDot = "#d32f2f";
+let currentSelectedColor = {
+    bg: "#FF02024D",
+    dot: "#FF0202"
+};
 
-// 로드 시 실행
+// ==========================================
+// 2. 실행 및 이벤트 리스너
+// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    renderTags();         // 태그 목록 그리기
-    setupColorSelection();// 색상 선택 이벤트 연결
-    
-    // 생성 버튼 & 엔터키 이벤트 연결
-    document.getElementById('createTagBtn').addEventListener('click', addNewTag);
-    document.getElementById('tagNameInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addNewTag();
-    });
+    renderTags();
+    setupColorPicker();
 
-    // 검색창 기능 추가
+    const createBtn = document.getElementById('createTagBtn');
+    if (createBtn) {
+        createBtn.addEventListener('click', addNewTag);
+    }
+
+    const inputField = document.getElementById('tagNameInput');
+    if (inputField) {
+        inputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addNewTag();
+        });
+    }
+
     const searchInput = document.querySelector('.search-container input');
     if (searchInput) {
         searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { // 엔터키를 눌렀을 때만 실행
+            if (e.key === 'Enter') {
                 const query = e.target.value.trim();
-                if (query) {
-                    // 검색어를 가지고 bookmark.html로 이동
-                    window.location.href = `bookmark.html?q=${encodeURIComponent(query)}`;
-                }
+                if (query) window.location.href = `../bookmark/bookmark.html?q=${encodeURIComponent(query)}`;
             }
         });
     }
 });
 
 // ==========================================
-// 2. 핵심 로직 (불러오기 & 그리기)
+// 3. 핵심 기능 함수들
 // ==========================================
 
 function getTags() {
@@ -56,105 +52,129 @@ function saveTags(tags) {
     localStorage.setItem('myTagList', JSON.stringify(tags));
 }
 
-// ★ 북마크 개수 세기 (실제 데이터 기반)
 function getCountForTag(tagName) {
     const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
-    // 저장된 북마크 중 태그 이름이 같은 것의 개수를 셈
-    // (대시보드 데이터 구조상 tag 필드와 비교)
-    return bookmarks.filter(item => item.tag === tagName).length;
+    const targetTag = tagName.toUpperCase();
+    
+    return bookmarks.filter(item => {
+        const itemTag = (item.tag || '').toUpperCase();
+        return itemTag === targetTag;
+    }).length;
 }
 
 function renderTags() {
     const container = document.getElementById('tagListContainer');
+    if (!container) return;
+
+    container.innerHTML = ''; 
     const tags = getTags();
-    
-    container.innerHTML = ''; // 초기화
 
     tags.forEach(tag => {
-        // 실제 개수 계산
-        const realCount = getCountForTag(tag.name);
+        const count = getCountForTag(tag.name);
 
         const cardHTML = `
-            <div class="tag-card" style="background-color: ${tag.color};">
-                <i class="fa-solid fa-xmark delete-btn" onclick="deleteTag(${tag.id})"></i>
+            <div class="tag-card" 
+                 style="background-color: ${tag.color}; cursor: pointer;"
+                 onclick="goToTagFilter('${tag.name}')">
+                
+                <i class="fa-solid fa-xmark delete-btn" 
+                   title="삭제"
+                   onclick="event.stopPropagation(); deleteTag(${tag.id}, '${tag.name}')"></i>
+                
                 <div class="tag-info">
                     <div class="tag-dot" style="background-color: ${tag.dotColor};"></div>
                     <span class="tag-name">${tag.name}</span>
                 </div>
-                <span class="tag-count">${realCount}개의 글</span>
+                <span class="tag-count">${count}개의 글</span>
             </div>
         `;
         container.innerHTML += cardHTML;
     });
 }
 
-// ==========================================
-// 3. 기능 구현 (색상선택, 추가, 삭제)
-// ==========================================
-
-function setupColorSelection() {
+function setupColorPicker() {
     const circles = document.querySelectorAll('.color-circle');
-    
     circles.forEach(circle => {
         circle.addEventListener('click', () => {
-            // 선택 효과 UI 처리
             circles.forEach(c => c.classList.remove('selected'));
             circle.classList.add('selected');
-            
-            // 선택한 색상값 변수에 저장
             const colorName = circle.getAttribute('data-color');
-            updateSelectedColors(colorName);
+            updateColorVariable(colorName);
         });
     });
 }
 
-function updateSelectedColors(colorName) {
-    // 색상 팔레트 정의
+function updateColorVariable(colorName) {
     switch(colorName) {
-        case 'red':    selectedColorBg = "#ffadad"; selectedColorDot = "#d32f2f"; break;
-        case 'orange': selectedColorBg = "#ffd6a5"; selectedColorDot = "#e65100"; break;
-        case 'yellow': selectedColorBg = "#fdffb6"; selectedColorDot = "#fbc02d"; break;
-        case 'green':  selectedColorBg = "#caffbf"; selectedColorDot = "#2e7d32"; break;
-        case 'blue':   selectedColorBg = "#a0c4ff"; selectedColorDot = "#1565c0"; break;
-        case 'purple': selectedColorBg = "#bdb2ff"; selectedColorDot = "#6a1b9a"; break;
-        case 'grey':   selectedColorBg = "#cfcfcf"; selectedColorDot = "#424242"; break;
+        case 'red':    currentSelectedColor = { bg: "#FF02024D", dot: "#FF0202" }; break;
+        case 'orange': currentSelectedColor = { bg: "#FF77004D", dot: "#FF7700" }; break;
+        case 'yellow': currentSelectedColor = { bg: "#FFE5004D", dot: "#FFE500" }; break;
+        case 'green':  currentSelectedColor = { bg: "#0E9E294D", dot: "#0E9E29" }; break;
+        case 'blue':   currentSelectedColor = { bg: "#3D98FA4D", dot: "#3D98FA" }; break;
+        case 'purple': currentSelectedColor = { bg: "#E250CF4D", dot: "#E250CF" }; break;
+        case 'grey':   currentSelectedColor = { bg: "#8888884D", dot: "#888888" }; break;
+        default:       currentSelectedColor = { bg: "#FF02024D", dot: "#FF0202" }; 
     }
 }
 
 function addNewTag() {
     const input = document.getElementById('tagNameInput');
-    const name = input.value.trim();
+    const tagName = input.value.trim().toUpperCase();
 
-    if (!name) {
+    if (!tagName) {
         alert("태그 이름을 입력해주세요!");
         return;
     }
 
-    // 중복 체크
     const tags = getTags();
-    if (tags.some(t => t.name === name)) {
-        alert("이미 존재하는 태그입니다.");
+    const isDuplicate = tags.some(t => t.name === tagName);
+
+    if (isDuplicate) {
+        alert("이미 존재하는 태그 이름입니다.");
         return;
     }
 
     const newTag = {
         id: Date.now(),
-        name: name,
-        color: selectedColorBg,
-        dotColor: selectedColorDot
+        name: tagName,
+        color: currentSelectedColor.bg,
+        dotColor: currentSelectedColor.dot
     };
 
     tags.push(newTag);
-    saveTags(tags); // 저장
-    renderTags();   // 다시 그리기
-    input.value = ''; // 입력창 비우기
+    saveTags(tags);
+    renderTags();
+
+    input.value = '';
 }
 
-window.deleteTag = function(id) {
-    if(confirm("정말 이 태그를 삭제하시겠습니까?")) {
+// [핵심 수정] 태그 삭제 시 관련 북마크(글)도 함께 삭제
+window.deleteTag = function(id, tagName) {
+    if(confirm(`'${tagName}' 태그와 해당 태그에 포함된 모든 글이 삭제됩니다. \n계속하시겠습니까?`)) {
+        
+        // 1. 태그 목록에서 삭제
         let tags = getTags();
         tags = tags.filter(tag => tag.id !== id);
         saveTags(tags);
+
+        // 2. 해당 태그를 가진 북마크(글)들 삭제
+        let bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+        const targetTag = tagName.toUpperCase();
+
+        // 해당 태그가 아닌 북마크들만 남김 (필터링)
+        const updatedBookmarks = bookmarks.filter(item => {
+            const itemTag = (item.tag || '').toUpperCase();
+            return itemTag !== targetTag;
+        });
+
+        // 결과 저장
+        localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
+        
+        // 3. 화면 갱신
         renderTags();
     }
+};
+
+window.goToTagFilter = function(tagName) {
+    window.location.href = `../bookmark/bookmark.html?tag=${encodeURIComponent(tagName)}`;
 };
