@@ -102,7 +102,7 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
 }
 
 .btn-primary {
-    background-color: #284771;
+    background-color: rgba(52, 84, 130, 1);
     color: white;
     border: none;
     padding: 10px 20px;
