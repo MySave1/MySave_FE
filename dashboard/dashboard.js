@@ -181,7 +181,7 @@ function renderSidebarReminders() {
         else if (diffDays > 1) groups.upcoming.push(item);
     });
 
-    // 4. [핵심] 각 그룹별로 최대 4개씩만 남기기 (slice 적용)
+    // 4. 각 그룹별로 최대 4개씩만 남기기 (slice 적용)
     const finalGroups = {
         today: groups.today.slice(0, 4),
         tomorrow: groups.tomorrow.slice(0, 4),
