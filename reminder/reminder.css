@@ -133,7 +133,6 @@ button { border: none; background: none; cursor: pointer; }
 .dot.yellow { background-color: #fbbf24; }
 .dot.pink { background-color: #ff6b6b; }
 
-/* 마지막 그룹의 줄은 없애거나 투명하게 처리하고 싶을 때 */
 .timeline-group:last-child .timeline-items {
     border-left: 2px solid transparent; 
 }
