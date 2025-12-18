@@ -41,21 +41,15 @@
                 const data = await response.json();
                 console.log("로그인 성공! 받은 데이터:", data);
 
-                // 4. 토큰 저장 (백엔드 DTO 필드명 확인: accessToken이 맞는지)
+                // 4. 토큰 저장 (백엔드 DTO 필드명 확인)
                 if (data.accessToken) {
-                    // 1. 토큰 저장
                     localStorage.setItem("accessToken", data.accessToken);
-    
-                    // 2. 이름, 이메일도 미리 저장
                     localStorage.setItem("userName", data.name);
                     localStorage.setItem("userEmail", data.email);
+                    localStorage.setItem("userId", data.userId); 
 
-                    alert(`${data.name}님 환영합니다!`); // 이름을 불러줄 수 있음
-                    
-                    // 5. 로그인 후 이동할 페이지 (예: 대시보드)
+                    alert(`${data.name}님 환영합니다!`);
                     window.location.replace("../dashboard/dashboard.html");
-                } else {
-                    alert("토큰을 받아오지 못했습니다.");
                 }
 
             } catch (error) {

@@ -1,41 +1,30 @@
 // ==========================================
-// 1. 초기 설정 및 데이터
+// 1. 초기 설정 및 전역 변수
 // ==========================================
 
-const defaultTags = [];
+// 현재 선택된 색상 (기본값: red)
+let currentSelectedColor = { bg: "#FF02024D", dot: "#FF0202" };
 
-let currentSelectedColor = {
-    bg: "#FF02024D",
-    dot: "#FF0202"
-};
-
-// ==========================================
-// 2. 실행 및 이벤트 리스너
-// ==========================================
+// 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. 유저 체크
     const token = localStorage.getItem('accessToken');
-    const userId = localStorage.getItem('userId');
-    
-    if (!token || !userId) {
+    if (!token) {
         alert("로그인이 필요합니다.");
         window.location.href = "../index/index.html";
         return;
     }
 
+    // 2. 초기 렌더링
     renderTags();
-    setupColorPicker();
+    setupColorSelection();
 
-    const createBtn = document.getElementById('createTagBtn');
-    if (createBtn) {
-        createBtn.addEventListener('click', addNewTag);
-    }
-
-    const inputField = document.getElementById('tagNameInput');
-    if (inputField) {
-        inputField.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addNewTag();
-        });
-    }
+    // 3. 이벤트 리스너 연결
+    document.getElementById('createTagBtn').addEventListener('click', addNewTag);
+    
+    document.getElementById('tagNameInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addNewTag();
+    });
 
     const searchInput = document.querySelector('.search-container input');
     if (searchInput) {
@@ -49,54 +38,81 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// 3. 핵심 기능 함수들 (Mock DB 적용)
+// 2. 핵심 로직 (Local Storage - 가짜 데이터)
 // ==========================================
 
-// 내 태그만 가져오기
+// 가짜 DB에서 태그 가져오기
 function getTags() {
-    // 'fake_tags_db'라는 가짜 DB에서 전체 데이터를 가져옴
     const allTags = JSON.parse(localStorage.getItem('fake_tags_db')) || [];
     const myId = localStorage.getItem('userId');
-
-    // 내 아이디(userId)와 일치하는 태그만 필터링해서 리턴
+    // 내 아이디로 된 태그만 가져오기
     return allTags.filter(tag => tag.userId === myId);
 }
 
-// 태그 저장하기 (내 것만 추가)
-function saveNewTagToDB(newTag) {
+// 가짜 DB에 태그 저장
+function saveTagsToDB(tags) {
+    // 1. 기존 DB 가져오기
     const allTags = JSON.parse(localStorage.getItem('fake_tags_db')) || [];
-    allTags.push(newTag); // 전체 DB에 추가
-    localStorage.setItem('fake_tags_db', JSON.stringify(allTags));
-}
-
-// 태그 삭제하기 (내 것만 삭제)
-function deleteTagFromDB(tagId) {
-    let allTags = JSON.parse(localStorage.getItem('fake_tags_db')) || [];
-    // 삭제하려는 ID만 빼고 다시 저장
-    allTags = allTags.filter(tag => tag.id !== tagId);
-    localStorage.setItem('fake_tags_db', JSON.stringify(allTags));
-}
-
-// 북마크 개수 세기 (내 북마크 중에서만)
-function getCountForTag(tagName) {
-    const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
     const myId = localStorage.getItem('userId');
-    const targetTag = tagName.toUpperCase();
     
-    return bookmarks.filter(item => {
-        // 1. 내 북마크인지 확인 (userId가 없으면 패스하거나 예전 데이터로 간주)
-        const isMine = item.userId ? (item.userId === myId) : true; 
-        // 2. 태그 이름 일치 확인
-        const itemTag = (item.tag || '').toUpperCase();
-        return isMine && (itemTag === targetTag);
-    }).length;
+    const otherUsersTags = allTags.filter(tag => tag.userId !== myId);
+    const newDB = [...otherUsersTags, ...tags];
+    
+    localStorage.setItem('fake_tags_db', JSON.stringify(newDB));
 }
+
+function addNewTag() {
+    const input = document.getElementById('tagNameInput');
+    const name = input.value.trim().toUpperCase(); // 태그는 대문자로 관리 추천
+    const myId = localStorage.getItem('userId');
+
+    if (!name) { alert("태그 이름을 입력해주세요!"); return; }
+
+    const myTags = getTags();
+
+    // 중복 검사
+    if (myTags.some(t => t.name === name)) {
+        alert("이미 존재하는 태그입니다.");
+        return;
+    }
+
+    // 새 태그 생성
+    const newTag = {
+        id: Date.now(),
+        userId: myId,
+        name: name,
+        color: currentSelectedColor.bg,
+        dotColor: currentSelectedColor.dot,
+        createdAt: new Date().toISOString()
+    };
+
+    // 저장 및 갱신
+    myTags.push(newTag);
+    saveTagsToDB(myTags);
+    
+    input.value = '';
+    renderTags();
+}
+
+// 태그 삭제
+window.deleteTag = function(tagId) {
+    if(!confirm("정말 이 태그를 삭제하시겠습니까?")) return;
+
+    let myTags = getTags();
+    myTags = myTags.filter(t => t.id !== tagId);
+    
+    saveTagsToDB(myTags);
+    renderTags();
+};
+
+// ==========================================
+// 3. UI 렌더링 및 헬퍼 함수
+// ==========================================
 
 function renderTags() {
     const container = document.getElementById('tagListContainer');
-    if (!container) return;
-
-    container.innerHTML = ''; 
+    container.innerHTML = '';
+    
     const tags = getTags();
 
     if (tags.length === 0) {
@@ -105,34 +121,40 @@ function renderTags() {
     }
 
     tags.forEach(tag => {
-        const count = getCountForTag(tag.name);
+        const count = 0; 
 
         const cardHTML = `
             <div class="tag-card" 
                  style="background-color: ${tag.color}; cursor: pointer;"
                  onclick="goToTagFilter('${tag.name}')">
-                
+                 
                 <i class="fa-solid fa-xmark delete-btn" 
-                   title="삭제"
-                   onclick="event.stopPropagation(); deleteTag(${tag.id}, '${tag.name}')"></i>
-                
+                   onclick="event.stopPropagation(); deleteTag(${tag.id})"></i>
+                   
                 <div class="tag-info">
                     <div class="tag-dot" style="background-color: ${tag.dotColor};"></div>
                     <span class="tag-name">${tag.name}</span>
                 </div>
-                <span class="tag-count">${count}개의 글</span>
+                <span class="tag-count">Tag Filter</span>
             </div>
         `;
         container.innerHTML += cardHTML;
     });
 }
 
-function setupColorPicker() {
+// 태그 클릭 시 북마크 리스트 페이지로 이동 (검색)
+window.goToTagFilter = function(tagName) {
+    window.location.href = `../bookmark/bookmark.html?tag=${encodeURIComponent(tagName)}`;
+};
+
+// 색상 선택 로직
+function setupColorSelection() {
     const circles = document.querySelectorAll('.color-circle');
     circles.forEach(circle => {
         circle.addEventListener('click', () => {
             circles.forEach(c => c.classList.remove('selected'));
             circle.classList.add('selected');
+            
             const colorName = circle.getAttribute('data-color');
             updateColorVariable(colorName);
         });
@@ -151,72 +173,3 @@ function updateColorVariable(colorName) {
         default:       currentSelectedColor = { bg: "#FF02024D", dot: "#FF0202" }; 
     }
 }
-
-function addNewTag() {
-    const input = document.getElementById('tagNameInput');
-    const tagName = input.value.trim().toUpperCase();
-    const myId = localStorage.getItem('userId'); // 내 아이디 가져오기
-
-    if (!tagName) {
-        alert("태그 이름을 입력해주세요!");
-        return;
-    }
-
-    const tags = getTags(); // 내 태그 목록만 가져옴
-    const isDuplicate = tags.some(t => t.name === tagName);
-
-    if (isDuplicate) {
-        alert("이미 존재하는 태그 이름입니다.");
-        return;
-    }
-
-    const newTag = {
-        id: Date.now(),
-        userId: myId,  // [핵심] 유저 ID 추가 (주인 표시)
-        name: tagName,
-        color: currentSelectedColor.bg,
-        dotColor: currentSelectedColor.dot,
-        createdAt: new Date().toISOString()
-    };
-
-    saveNewTagToDB(newTag); // DB에 저장
-    renderTags();
-
-    input.value = '';
-}
-
-// 태그 삭제 시 관련 북마크(글)도 함께 삭제
-window.deleteTag = function(id, tagName) {
-    if(confirm(`'${tagName}' 태그와 해당 태그에 포함된 모든 글이 삭제됩니다. \n계속하시겠습니까?`)) {
-        
-        // 1. 태그 목록에서 삭제
-        deleteTagFromDB(id);
-
-        // 2. 해당 태그를 가진 북마크(글)들 삭제
-        let bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
-        const myId = localStorage.getItem('userId');
-        const targetTag = tagName.toUpperCase();
-
-        const updatedBookmarks = bookmarks.filter(item => {
-            // 내 글이면서 + 태그가 같은 경우 -> 삭제 대상 (즉, 남길 것만 true)
-            
-            const isMine = item.userId ? (item.userId === myId) : true;
-            const itemTag = (item.tag || '').toUpperCase();
-
-            if (isMine && itemTag === targetTag) {
-                return false; 
-            }
-            return true;
-        });
-
-        // 결과 저장
-        localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
-        
-        // 3. 화면 갱신
-        renderTags();
-    }
-};
-
-window.goToTagFilter = function(tagName) {
-    window.location.href = `../bookmark/bookmark.html?tag=${encodeURIComponent(tagName)}`;
-};
