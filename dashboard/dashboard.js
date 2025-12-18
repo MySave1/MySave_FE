@@ -37,9 +37,16 @@ function deleteBookmark(id) {
     const filtered = allData.filter(item => item.id !== id);
     saveDashboardData(filtered);
     
-    const currentData = getDashboardData();
-    currentData.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-    renderCards(currentData.slice(0, 6));
+    // 삭제 후 현재 검색어 상태를 유지하며 다시 렌더링
+    const searchInput = document.querySelector('.search-container input');
+    if (searchInput && searchInput.value.trim() !== "") {
+        handleSearch(searchInput.value.trim());
+    } else {
+        const currentData = getDashboardData();
+        currentData.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        renderCards(currentData.slice(0, 6));
+    }
+    
     renderSidebarReminders();
     updateDashboardStats();
 }
@@ -62,6 +69,22 @@ function toggleStar(element, id) {
     updateDashboardStats();
 }
 
+// [추가] 실시간 검색 처리 함수
+function handleSearch(query) {
+    const allData = getDashboardData();
+    const lowerQuery = query.toLowerCase();
+    
+    // 제목 또는 태그에 검색어가 포함된 항목 필터링
+    const filtered = allData.filter(item => 
+        (item.title && item.title.toLowerCase().includes(lowerQuery)) ||
+        (item.tag && item.tag.toLowerCase().includes(lowerQuery))
+    );
+    
+    // 필터링된 결과 렌더링 (최신순 정렬 후 최대 6개)
+    filtered.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    renderCards(filtered.slice(0, 6));
+}
+
 // =============================
 // 3. 렌더링 함수 (카드, 리마인드, 태그)
 // =============================
@@ -72,11 +95,10 @@ function renderCards(data) {
     cardContainer.innerHTML = '';
     
     if (data.length === 0) {
-        // [수정] 최근 저장 목록 빈 상태 가운데 정렬
         cardContainer.innerHTML = `
             <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 100px 0; color: #bbb;">
                 <i class="fa-regular fa-folder-open" style="font-size: 40px; margin-bottom: 15px; opacity: 0.3;"></i>
-                <p style="font-size: 14px;">저장된 북마크가 없습니다.</p>
+                <p style="font-size: 14px;">검색 결과가 없거나 저장된 북마크가 없습니다.</p>
             </div>`;
         return;
     }
@@ -95,11 +117,7 @@ function renderCards(data) {
         const bgStyle = item.image ? `background-image: url('${item.image}'); background-size: cover; background-position: center;` : `background-color: ${item.bgColor || '#eee'};`;
         const reminderBadge = item.reminderTime ? `<div style="width: 28px; height: 28px; background-color: rgba(255, 255, 255, 0.90); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fa-solid fa-bell" style="color: #3182F6; font-size: 13px;"></i></div>` : '';
 
-        // [고정] 요약 기능 부재로 '요약하기' 상태 유지
-        let summaryTag = '';
-        if (!item.image) {
-            summaryTag = `<span class="summary-tag" style="color: #555;">요약하기</span>`;
-        }
+        let summaryTag = `<span class="summary-tag" style="color: #555;">요약하기</span>`;
           
         card.innerHTML = `
             <div class="card-img" style="${bgStyle} height: 160px; position: relative; padding: 12px; display: flex; justify-content: space-between;">
@@ -133,7 +151,6 @@ function renderSidebarReminders() {
     const reminders = bookmarks.filter(item => item.reminderTime && !item.isRead);
     
     if (reminders.length === 0) {
-        // [수정] 빈 상태 가운데 정렬
         container.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; color: #ccc;">
                 <i class="fa-regular fa-bell-slash" style="font-size: 30px; margin-bottom: 10px; opacity: 0.3;"></i>
@@ -166,7 +183,7 @@ function createSidebarGroupHTML(label, color, items, showDate = false) {
     const listHTML = items.map(item => `
         <div class="reminder-item" onclick="location.href='../bookmarkContent/bookmarkContent.html?id=${item.id}&from=dashboard'" style="cursor: pointer;">
             <span class="time">${showDate ? item.displayDate + ' ' : ''}${item.displayTime}</span>
-            <span class="task">${item.title}</span>
+            <span class="task" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title}</span>
         </div>
     `).join('');
     const dotStyle = color === 'gray' ? 'style="background-color: #ccc"' : '';
@@ -181,7 +198,6 @@ function renderSidebarTags(tagDataArray) {
     cloudContainer.innerHTML = '';
     
     if (sortedTags.length === 0) {
-        // [수정] 빈 상태 가운데 정렬
         cloudContainer.innerHTML = `
             <div style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 0; color: #ccc;">
                 <i class="fa-solid fa-tags" style="font-size: 24px; margin-bottom: 10px; opacity: 0.3;"></i>
@@ -212,7 +228,6 @@ function updateDashboardStats() {
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = `${yesterday.getFullYear()}.${String(yesterday.getMonth() + 1).padStart(2, '0')}.${String(yesterday.getDate()).padStart(2, '0')}`;
 
-    // 1. 오늘 저장 통계 및 멘트 수정
     const todaySavedEl = document.querySelector('.stat-card:nth-child(1) .stat-value');
     const todayDescEl = document.querySelector('.stat-card:nth-child(1) .stat-desc');
     if (todaySavedEl) {
@@ -228,7 +243,6 @@ function updateDashboardStats() {
         }
     }
 
-    // 2. 미완료 리마인드 통계
     const reminderValueEl = document.querySelector('.stat-card:nth-child(2) .stat-value');
     const reminderDescEl = document.querySelector('.stat-card:nth-child(2) .stat-desc');
     if (reminderValueEl) {
@@ -242,7 +256,6 @@ function updateDashboardStats() {
         if (reminderDescEl) reminderDescEl.textContent = `오늘 마감되는 항목 ${todayDue}건`;
     }
 
-    // 3. 가장 자주 쓴 태그 및 공동 순위 표시
     const tagAnalysis = {};
     bookmarks.forEach(item => {
         if (item.tag) {
@@ -259,23 +272,33 @@ function updateDashboardStats() {
         return b.latestId - a.latestId;
     });
 
-    const topTagEl = document.querySelector('.stat-card:nth-child(3) .stat-value');
+   const topTagEl = document.querySelector('.stat-card:nth-child(3) .stat-value');
     const topTagDescEl = document.querySelector('.stat-card:nth-child(3) .stat-desc');
-    if (topTagEl) {
+    
+    if (topTagEl && topTagDescEl) {
         if (sortedTagArray.length > 0) {
+            // 1. 북마크(태그)가 있을 때
             const maxCount = sortedTagArray[0].count;
             const jointCount = sortedTagArray.filter(t => t.count === maxCount).length - 1;
             const plusBadge = jointCount > 0 ? `<span class="badge" style="background:#eee; color:#666; margin-left:5px;">+${jointCount}</span>` : '';
-            topTagEl.innerHTML = `${sortedTagArray[0].name} <span class="badge">Top 1</span> ${plusBadge}`;
-            if (topTagDescEl) topTagDescEl.textContent = "최근 7일간 가장 많이 사용됨";
-            topTagEl.onclick = () => { window.location.href = `../bookmark/bookmark.html?tag=${encodeURIComponent(sortedTagArray[0].name)}`; };
+            
+            const topTagName = sortedTagArray[0].name;
+            topTagEl.innerHTML = `${topTagName} <span class="badge">Top 1</span> ${plusBadge}`;
+            topTagEl.style.cursor = "pointer";
+            topTagEl.onclick = () => { window.location.href = `../bookmark/bookmark.html?tag=${encodeURIComponent(topTagName)}`; };
+            
+            // 문구 변경: 현재 가장 많이 사용 중인 태그
+            topTagDescEl.textContent = "현재 가장 많이 사용 중인 태그";
         } else {
+            // 2. 북마크가 하나도 없을 때
             topTagEl.innerHTML = `없음 <span class="badge" style="background:#eee; color:#999;">-</span>`;
-            if (topTagDescEl) topTagDescEl.textContent = "태그를 사용하여 분류해보세요";
+            topTagEl.style.cursor = "default";
+            topTagEl.onclick = null;
+            
+            // 문구 변경: 태그를 사용하여 분류해보세요
+            topTagDescEl.textContent = "태그를 사용하여 분류해보세요";
         }
     }
-
-    // 4. [수정] 주간 읽기 달성률 초기 멘트 및 로직
     const weeklyRateEl = document.querySelector('.stat-card:nth-child(4) .stat-value');
     const weeklyDescEl = document.querySelector('.stat-card:nth-child(4) .stat-desc');
     if (weeklyRateEl) {
@@ -322,6 +345,33 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSidebarReminders();
     updateDashboardStats();
 
+    // [수정] 실시간 검색 기능 구현 (input 이벤트 사용)
+    const searchInput = document.querySelector('.search-container input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            if (query === "") {
+                // 검색어가 없으면 다시 최신 목록 6개 표시
+                const currentData = getDashboardData();
+                currentData.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+                renderCards(currentData.slice(0, 6));
+            } else {
+                // 실시간 필터링 실행
+                handleSearch(query);
+            }
+        });
+        
+        // 엔터 시 검색 결과 페이지 이동 로직도 유지
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query) {
+                    window.location.href = `../bookmark/bookmark.html?q=${encodeURIComponent(query)}`;
+                }
+            }
+        });
+    }
+
     const addModal = document.getElementById('addBookmarkModal');
     const newTagInput = document.getElementById('newTagInput');
     const tagSelectionContainer = document.getElementById('tagSelectionContainer');
@@ -351,7 +401,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('openAddModalBtn')?.addEventListener('click', () => {
-        // [수정] 모달 입력 초기화
         document.getElementById('newUrl').value = '';
         document.getElementById('newTitle').value = '';
         document.getElementById('newContent').value = '';
@@ -399,19 +448,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const tagName = newTagInput.value.trim().toUpperCase() || 'ETC';
             const existingTags = getTagList();
             let tagColor = '#555';
+            let tagDotColor = '#888888'; 
             let tagObj = existingTags.find(t => t.name === tagName);
             
-            // [일치] tag.js 규격 색상 배정
             if (!tagObj && tagName !== 'ETC') {
                 const colorPalette = [
                     { bg: "#FF02024D", dot: "#FF0202" }, { bg: "#FF77004D", dot: "#FF7700" },
-                    { bg: "##FFE5004D", dot: "#FFE500" }, { bg: "#FFE5004D", dot: "#0E9E29" },
+                    { bg: "#FFE5004D", dot: "#FFE500" }, { bg: "#0E9E294D", dot: "#0E9E29" },
                     { bg: "#3D98FA4D", dot: "#3D98FA" }, { bg: "#E250CF4D", dot: "#E250CF" },
                     { bg: "#8888884D", dot: "#888888" }
                 ];
-                const randColor = colorPalette[Math.floor(Math.random() * colorPalette.length)];
-                tagColor = randColor.bg;
-                tagObj = { id: Date.now(), name: tagName, color: tagColor, dotColor: randColor.dot };
+                const randChoice = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+                tagColor = randChoice.bg;
+                tagDotColor = randChoice.dot;
+                
+                tagObj = { id: Date.now(), name: tagName, color: tagColor, dotColor: tagDotColor };
                 existingTags.push(tagObj);
                 saveTagList(existingTags);
             } else if (tagObj) { tagColor = tagObj.color; }
