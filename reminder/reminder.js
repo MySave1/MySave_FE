@@ -6,11 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.querySelector('.search-container input');
     if (searchInput) {
         searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { // 엔터키를 눌렀을 때만 실행
+            if (e.key === 'Enter') {
                 const query = e.target.value.trim();
                 if (query) {
-                    // 검색어를 가지고 북마크 목록 페이지로 이동
-                    // (폴더 구조에 따라 경로가 다를 수 있으니 확인 필요: 예: ../bookmark/bookmark.html)
                     window.location.href = `../bookmark/bookmark.html?q=${encodeURIComponent(query)}`;
                 }
             }
@@ -27,13 +25,13 @@ function loadAndRenderReminders() {
     // 1. LocalStorage에서 전체 북마크 데이터 가져오기
     const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
     
-    // 2. 리마인드가 설정된 아이템만 필터링 (reminderTime이 존재하는 것)
+    // 2. 리마인드가 설정된 아이템만 필터링
     const reminders = bookmarks.filter(item => item.reminderTime);
 
-    // 저장된 리마인드가 아예 없는 경우 안내 표시
+    // 저장된 리마인드가 아예 없는 경우
     if (reminders.length === 0) {
         container.innerHTML = `
-            <div style="text-align:center; padding: 60px 0; color:#fff;">
+            <div style="text-align:center; padding: 60px 0; color:#888;">
                 <i class="fa-regular fa-clock" style="font-size: 48px; margin-bottom: 20px; opacity: 0.5;"></i>
                 <p>설정된 리마인드가 없습니다.</p>
             </div>`;
@@ -48,7 +46,7 @@ function loadAndRenderReminders() {
         upcoming: { label: "이번주 / 다음주", color: "pink", items: [] }
     };
 
-    // 오늘 날짜 기준점 (시간 제외하고 날짜만 비교하기 위해 00:00:00으로 설정)
+    // 오늘 날짜 기준점
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -61,57 +59,50 @@ function loadAndRenderReminders() {
         const diffTime = targetDayStart - todayStart;
         const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-        // 시간 표시 텍스트 생성 (예: "오후 2:00")
+        // 시간 표시 텍스트 생성
         const timeString = targetDate.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 
-        // 화면에 보여줄 객체 생성 (기본 아이템 정보 + 표시용 시간)
+        // 화면에 보여줄 객체 생성
         const displayItem = { ...item, displayTime: timeString };
 
-        // [필터링 로직]
+        // 필터링 로직
         if (diffDays < 0) {
-            // 과거의 리마인드는 표시하지 않음
             return;
         } else if (diffDays === 0) {
-            // 오늘
             groups.today.items.push(displayItem);
         } else if (diffDays === 1) {
-            // 내일
             groups.tomorrow.items.push(displayItem);
         } else if (diffDays > 1 && diffDays <= 14) { 
-            // 2일 뒤 ~ 14일 뒤 (이번주/다음주)까지만 표시
             const dateStr = `${targetDate.getMonth() + 1}.${targetDate.getDate()}`;
             displayItem.displayTime = `${dateStr} (D-${diffDays})`; 
             groups.upcoming.items.push(displayItem);
         }
-        // 14일 이후의 일정은 포함되지 않음
     });
 
-    // 5. 각 그룹 내부에서 시간순 정렬 (오름차순)
+    // 5. 각 그룹 내부에서 시간순 정렬
     Object.values(groups).forEach(group => {
         group.items.sort((a, b) => new Date(a.reminderTime) - new Date(b.reminderTime));
     });
 
-    // 6. 상단 배너 숫자 업데이트 (오늘 할 일 개수만 카운트)
+    // 6. 상단 배너 숫자 업데이트
     updateBannerCount(groups.today.items.length);
 
     // 7. 화면에 그리기
     container.innerHTML = '';
     
-    // 오늘 -> 내일 -> 예정 순서로 그룹 렌더링
     let hasAnyItems = false;
     ['today', 'tomorrow', 'upcoming'].forEach(key => {
         const group = groups[key];
-        // 해당 그룹에 아이템이 하나라도 있을 때만 화면에 그리기
         if (group.items.length > 0) {
             renderGroup(container, group);
             hasAnyItems = true;
         }
     });
 
-    // 필터링 결과 표시할 리마인드가 하나도 없는 경우 (모두 과거이거나 2주 뒤인 경우)
+    // 필터링 결과 표시할 리마인드가 하나도 없는 경우
     if (!hasAnyItems) {
         container.innerHTML = `
-            <div style="text-align:center; padding: 60px 0; color:#fff;">
+            <div style="text-align:center; padding: 60px 0; color:#888;">
                 <p style="opacity: 0.7;">2주 이내에 예정된 리마인드가 없습니다.</p>
             </div>`;
     }
@@ -124,9 +115,32 @@ function renderGroup(container, group) {
     let itemsHTML = '';
     
     group.items.forEach(item => {
-        // URL에서 도메인만 추출 (예: https://naver.com -> naver.com)
-        let hostname = '';
-        try { if (item.url) hostname = new URL(item.url).hostname; } catch (e) {}
+        // ===== URL 유효성 검증 및 도메인 추출 =====
+        let hostname = 'No link';
+        let hasValidUrl = false;
+        
+        console.log('📌 아이템:', item.title, '| URL:', item.url);
+        
+        if (item.url && item.url.trim() !== '') {
+            try {
+                const urlObj = new URL(item.url);
+                hostname = urlObj.hostname;
+                hasValidUrl = true;
+                console.log('✅ URL 파싱 성공:', hostname);
+            } catch (e) {
+                console.log('❌ URL 파싱 실패:', item.url);
+                hostname = 'Invalid URL';
+            }
+        } else {
+            console.log('⚠️ URL이 없음');
+        }
+
+        // "원본 글 보기" 버튼 (URL이 있을 때만 표시)
+        const linkButton = hasValidUrl ? `
+            <a href="${item.url}" class="item-action" target="_blank" onclick="event.stopPropagation();" style="display: flex; align-items: center; gap: 6px; color: #3b82f6; text-decoration: none; font-size: 13px;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> 원본 글 보기
+            </a>
+        ` : '';
 
         itemsHTML += `
             <div class="reminder-item" onclick="goToDetail(${item.id})" style="cursor: pointer;">
@@ -135,12 +149,15 @@ function renderGroup(container, group) {
                         <i class="fa-solid fa-bell" style="line-height:44px; display:block; text-align:center; color:#ddd;"></i>
                     </div>
                     <div class="item-info">
-                        <span class="item-time" style="color:${group.color === 'pink' ? '#ff6b6b' : '#3b82f6'}">
+                        <span class="item-time" style="color:${group.color === 'pink' ? '#ff6b6b' : '#3b82f6'}; font-weight: 600;">
                             ${item.displayTime}
                         </span>
-                        <span class="item-title">${item.title}</span>
-                        <span class="item-link-text">${hostname}</span>
+                        <span class="item-title" style="font-weight: 500; color: #333; font-size: 14px;">${item.title}</span>
+                        <span class="item-link-text" style="color: #999; font-size: 12px;">${hostname}</span>
                     </div>
+                </div>
+                <div class="item-right">
+                    ${linkButton}
                 </div>
             </div>
         `;
@@ -187,8 +204,7 @@ function updateBannerCount(count) {
  */
 function goToDetail(id) {
     localStorage.setItem('currentBookmarkId', id);
-    localStorage.setItem('previousPage', 'reminder'); // "리마인드 페이지에서 왔음" 표시
+    localStorage.setItem('previousPage', 'reminder');
     localStorage.setItem('editMode', 'false');
-    // 경로가 폴더 구조에 따라 다를 수 있음 (예: ../detail/detail.html)
     window.location.href = `../bookmarkContent/bookmarkContent.html?id=${id}`;
 }

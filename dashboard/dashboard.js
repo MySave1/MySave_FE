@@ -27,6 +27,8 @@ function getTagList() {
 function saveTagList(tags) {
     localStorage.setItem('myTagList', JSON.stringify(tags));
 }
+
+// =============================
 // 2. 핵심 기능 (삭제, 별표 토글)
 // =============================
 function deleteBookmark(id) {
@@ -145,9 +147,11 @@ function renderCards(data) {
 function renderSidebarReminders() {
     const container = document.getElementById('sidebarReminderList');
     if (!container) return;
+
     const bookmarks = getDashboardData();
-    const reminders = bookmarks.filter(item => item.reminderTime && !item.isRead);
-    
+    // 1. 리마인드가 있고 읽지 않은 항목들만 필터링
+    let reminders = bookmarks.filter(item => item.reminderTime && !item.isRead);
+
     if (reminders.length === 0) {
         container.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; color: #ccc;">
@@ -157,24 +161,46 @@ function renderSidebarReminders() {
         return;
     }
 
+    // 2. 시간순 정렬
+    reminders.sort((a, b) => new Date(a.reminderTime) - new Date(b.reminderTime));
+
     const todayStart = new Date(SYSTEM_NOW.getFullYear(), SYSTEM_NOW.getMonth(), SYSTEM_NOW.getDate());
     const groups = { today: [], tomorrow: [], upcoming: [] };
 
+    // 3. 먼저 모든 리마인드를 그룹별로 분류
     reminders.forEach(item => {
         const itemDate = new Date(item.reminderTime);
         const itemDayStart = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
         const diffDays = Math.round((itemDayStart.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24));
+        
         item.displayTime = itemDate.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
         item.displayDate = `${itemDate.getMonth() + 1}월 ${itemDate.getDate()}일`;
+
         if (diffDays === 0) groups.today.push(item);
         else if (diffDays === 1) groups.tomorrow.push(item);
         else if (diffDays > 1) groups.upcoming.push(item);
     });
 
-    container.innerHTML = '';
-    if (groups.today.length > 0) container.innerHTML += createSidebarGroupHTML('오늘', 'blue', groups.today);
-    if (groups.tomorrow.length > 0) container.innerHTML += createSidebarGroupHTML('내일', 'yellow', groups.tomorrow);
-    if (groups.upcoming.length > 0) container.innerHTML += createSidebarGroupHTML('예정', 'gray', groups.upcoming, true);
+    // 4. [핵심] 각 그룹별로 최대 4개씩만 남기기 (slice 적용)
+    const finalGroups = {
+        today: groups.today.slice(0, 4),
+        tomorrow: groups.tomorrow.slice(0, 4),
+        upcoming: groups.upcoming.slice(0, 4)
+    };
+
+    // 5. HTML 생성 및 출력
+    let finalHTML = '';
+    if (finalGroups.today.length > 0) {
+        finalHTML += createSidebarGroupHTML('오늘', 'blue', finalGroups.today);
+    }
+    if (finalGroups.tomorrow.length > 0) {
+        finalHTML += createSidebarGroupHTML('내일', 'yellow', finalGroups.tomorrow);
+    }
+    if (finalGroups.upcoming.length > 0) {
+        finalHTML += createSidebarGroupHTML('이번주 / 다음주', 'gray', finalGroups.upcoming, true);
+    }
+
+    container.innerHTML = finalHTML;
 }
 
 function createSidebarGroupHTML(label, color, items, showDate = false) {
@@ -184,7 +210,7 @@ function createSidebarGroupHTML(label, color, items, showDate = false) {
             <span class="task" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title}</span>
         </div>
     `).join('');
-    const dotStyle = color === 'gray' ? 'style="background-color: #ccc"' : '';
+    const dotStyle = color === 'gray' ? 'style="background-color: #ff6b6b"' : '';
     const dotClass = color !== 'gray' ? `dot ${color}` : 'dot';
     return `<div class="day-group"><div class="day-label"><span class="${dotClass}" ${dotStyle}></span> ${label}</div>${listHTML}</div>`;
 }
@@ -270,12 +296,11 @@ function updateDashboardStats() {
         return b.latestId - a.latestId;
     });
 
-   const topTagEl = document.querySelector('.stat-card:nth-child(3) .stat-value');
+    const topTagEl = document.querySelector('.stat-card:nth-child(3) .stat-value');
     const topTagDescEl = document.querySelector('.stat-card:nth-child(3) .stat-desc');
     
     if (topTagEl && topTagDescEl) {
         if (sortedTagArray.length > 0) {
-            // 1. 북마크(태그)가 있을 때
             const maxCount = sortedTagArray[0].count;
             const jointCount = sortedTagArray.filter(t => t.count === maxCount).length - 1;
             const plusBadge = jointCount > 0 ? `<span class="badge" style="background:#eee; color:#666; margin-left:5px;">+${jointCount}</span>` : '';
@@ -285,18 +310,16 @@ function updateDashboardStats() {
             topTagEl.style.cursor = "pointer";
             topTagEl.onclick = () => { window.location.href = `../bookmark/bookmark.html?tag=${encodeURIComponent(topTagName)}`; };
             
-            // 문구 변경: 현재 가장 많이 사용 중인 태그
             topTagDescEl.textContent = "현재 가장 많이 사용 중인 태그";
         } else {
-            // 2. 북마크가 하나도 없을 때
             topTagEl.innerHTML = `없음 <span class="badge" style="background:#eee; color:#999;">-</span>`;
             topTagEl.style.cursor = "default";
             topTagEl.onclick = null;
             
-            // 문구 변경: 태그를 사용하여 분류해보세요
             topTagDescEl.textContent = "태그를 사용하여 분류해보세요";
         }
     }
+    
     const weeklyRateEl = document.querySelector('.stat-card:nth-child(4) .stat-value');
     const weeklyDescEl = document.querySelector('.stat-card:nth-child(4) .stat-desc');
     if (weeklyRateEl) {
@@ -343,23 +366,20 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSidebarReminders();
     updateDashboardStats();
 
-    // [수정] 실시간 검색 기능 구현 (input 이벤트 사용)
+    // 실시간 검색 기능
     const searchInput = document.querySelector('.search-container input');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.trim();
             if (query === "") {
-                // 검색어가 없으면 다시 최신 목록 6개 표시
                 const currentData = getDashboardData();
                 currentData.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
                 renderCards(currentData.slice(0, 6));
             } else {
-                // 실시간 필터링 실행
                 handleSearch(query);
             }
         });
         
-        // 엔터 시 검색 결과 페이지 이동 로직도 유지
         searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 const query = e.target.value.trim();
@@ -391,8 +411,13 @@ document.addEventListener('DOMContentLoaded', () => {
             chip.onclick = () => {
                 const isSelected = chip.classList.contains('selected');
                 document.querySelectorAll('.choice-tag').forEach(c => c.classList.remove('selected'));
-                if (isSelected) { if(newTagInput) newTagInput.value = ''; chip.classList.remove('selected'); }
-                else { if(newTagInput) newTagInput.value = tag.name.toUpperCase(); chip.classList.add('selected'); }
+                if (isSelected) { 
+                    if(newTagInput) newTagInput.value = ''; 
+                    chip.classList.remove('selected'); 
+                } else { 
+                    if(newTagInput) newTagInput.value = tag.name.toUpperCase(); 
+                    chip.classList.add('selected'); 
+                }
             };
             tagSelectionContainer.appendChild(chip);
         });
@@ -413,36 +438,61 @@ document.addEventListener('DOMContentLoaded', () => {
         addModal.style.display = 'flex';
     });
 
-    document.querySelector('.close-modal')?.addEventListener('click', () => { addModal.style.display = 'none'; });
+    document.querySelector('.close-modal')?.addEventListener('click', () => { 
+        addModal.style.display = 'none'; 
+    });
 
-    reminderToggle?.addEventListener('change', (e) => { reminderOptions.style.display = e.target.checked ? 'block' : 'none'; });
+    reminderToggle?.addEventListener('change', (e) => { 
+        reminderOptions.style.display = e.target.checked ? 'block' : 'none'; 
+    });
 
     document.getElementById('btnTomorrow')?.addEventListener('click', (e) => {
-        const d = new Date(SYSTEM_NOW); d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0);
-        setReminderDate(d); setActiveQuickBtn(e.currentTarget);
+        const d = new Date(SYSTEM_NOW); 
+        d.setDate(d.getDate() + 1); 
+        d.setHours(9, 0, 0, 0);
+        setReminderDate(d); 
+        setActiveQuickBtn(e.currentTarget);
     });
 
     document.getElementById('btnWeekend')?.addEventListener('click', (e) => {
-        const d = new Date(SYSTEM_NOW); d.setDate(d.getDate() + (6 - d.getDay() + 7) % 7 || 7); d.setHours(10, 0, 0, 0);
-        setReminderDate(d); setActiveQuickBtn(e.currentTarget);
+        const d = new Date(SYSTEM_NOW); 
+        d.setDate(d.getDate() + (6 - d.getDay() + 7) % 7 || 7); 
+        d.setHours(10, 0, 0, 0);
+        setReminderDate(d); 
+        setActiveQuickBtn(e.currentTarget);
     });
 
     document.getElementById('btnNextWeek')?.addEventListener('click', (e) => {
-        const d = new Date(SYSTEM_NOW); d.setDate(d.getDate() + ((1 - d.getDay() + 7) % 7) + 7); d.setHours(9, 0, 0, 0);
-        setReminderDate(d); setActiveQuickBtn(e.currentTarget);
+        const d = new Date(SYSTEM_NOW); 
+        d.setDate(d.getDate() + ((1 - d.getDay() + 7) % 7) + 7); 
+        d.setHours(9, 0, 0, 0);
+        setReminderDate(d); 
+        setActiveQuickBtn(e.currentTarget);
     });
 
-    document.getElementById('calendarTrigger')?.addEventListener('click', () => hiddenDateInput.showPicker());
+    document.getElementById('calendarTrigger')?.addEventListener('click', () => {
+        hiddenDateInput.showPicker();
+    });
+    
     hiddenDateInput?.addEventListener('change', (e) => {
         const d = new Date(e.target.value);
         dateDisplay.textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
         document.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
     });
 
+    // ===== [중요] 북마크 저장 버튼 =====
     if (saveNewBtn) {
         saveNewBtn.addEventListener('click', () => {
             const title = document.getElementById('newTitle').value.trim();
-            if (!title) { alert('제목을 입력해주세요.'); return; }
+            if (!title) { 
+                alert('제목을 입력해주세요.'); 
+                return; 
+            }
+            
+            // ===== URL 가져오기 =====
+            const url = document.getElementById('newUrl').value.trim();
+            console.log('💾 저장할 URL:', url);
+            
             const tagName = newTagInput.value.trim().toUpperCase() || 'ETC';
             const existingTags = getTagList();
             let tagColor = '#555';
@@ -451,32 +501,57 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (!tagObj && tagName !== 'ETC') {
                 const colorPalette = [
-                    { bg: "#FF02024D", dot: "#FF0202" }, { bg: "#FF77004D", dot: "#FF7700" },
-                    { bg: "#FFE5004D", dot: "#FFE500" }, { bg: "#0E9E294D", dot: "#0E9E29" },
-                    { bg: "#3D98FA4D", dot: "#3D98FA" }, { bg: "#E250CF4D", dot: "#E250CF" },
+                    { bg: "#FF02024D", dot: "#FF0202" }, 
+                    { bg: "#FF77004D", dot: "#FF7700" },
+                    { bg: "#FFE5004D", dot: "#FFE500" }, 
+                    { bg: "#0E9E294D", dot: "#0E9E29" },
+                    { bg: "#3D98FA4D", dot: "#3D98FA" }, 
+                    { bg: "#E250CF4D", dot: "#E250CF" },
                     { bg: "#8888884D", dot: "#888888" }
                 ];
                 const randChoice = colorPalette[Math.floor(Math.random() * colorPalette.length)];
                 tagColor = randChoice.bg;
                 tagDotColor = randChoice.dot;
                 
-                tagObj = { id: Date.now(), name: tagName, color: tagColor, dotColor: tagDotColor };
+                tagObj = { 
+                    id: Date.now(), 
+                    name: tagName, 
+                    color: tagColor, 
+                    dotColor: tagDotColor 
+                };
                 existingTags.push(tagObj);
                 saveTagList(existingTags);
-            } else if (tagObj) { tagColor = tagObj.color; }
+            } else if (tagObj) { 
+                tagColor = tagObj.color; 
+            }
 
+            // ===== 새 북마크 객체 생성 (URL 포함) =====
             const newBookmark = {
-                id: Date.now(), title, tag: tagName, tagColor,
+                id: Date.now(), 
+                title, 
+                tag: tagName, 
+                tagColor,
+                url: url, // ← URL 저장
                 date: `${SYSTEM_NOW.getFullYear()}.${String(SYSTEM_NOW.getMonth() + 1).padStart(2, '0')}.${String(SYSTEM_NOW.getDate()).padStart(2, '0')}`,
-                bgColor: '#f0f2f5', isStarred: false, isRead: false,
-                hasSummary: false, // 요약 기능 미구현 고정
+                bgColor: '#f0f2f5', 
+                isStarred: false, 
+                isRead: false,
+                hasSummary: false,
                 content: document.getElementById('newContent').value,
                 memo: document.getElementById('newMemo').value,
-                reminderTime: reminderToggle.checked && hiddenDateInput.value ? new Date(hiddenDateInput.value).toISOString() : null
+                reminderTime: reminderToggle.checked && hiddenDateInput.value 
+                    ? new Date(hiddenDateInput.value).toISOString() 
+                    : null
             };
 
-            const data = getDashboardData(); data.unshift(newBookmark); saveDashboardData(data);
-            renderCards(data.slice(0, 6)); renderSidebarReminders(); updateDashboardStats();
+            console.log('✅ 저장되는 북마크:', newBookmark);
+
+            const data = getDashboardData(); 
+            data.unshift(newBookmark); 
+            saveDashboardData(data);
+            renderCards(data.slice(0, 6)); 
+            renderSidebarReminders(); 
+            updateDashboardStats();
             addModal.style.display = 'none';
         });
     }
