@@ -31,27 +31,40 @@
             <div class="profile-content">
                 <div class="profile-image-container">
                     <div class="dashed-border">
-                        <div class="profile-img"></div>
+                        <div class="profile-img" id="userProfileImg"></div> 
                     </div>
-                    <button class="edit-icon-btn"><i class="fa-solid fa-pen"></i></button>
+                    <button class="edit-icon-btn" id="editProfileBtn"><i class="fa-solid fa-pen"></i></button>
                 </div>
                 <div class="profile-info">
                     <div class="info-row">
                         <span class="label">닉네임</span>
-                        <span class="value">hyeona</span>
+                        <span class="value" id="userNickname">로그인이 필요합니다</span>
                     </div>
                     <div class="info-row">
                         <span class="label">이메일</span>
-                        <span class="value">01.hyeona@gmail.com</span>
+                        <span class="value" id="userEmail">-</span>
                     </div>
                     <div class="info-row">
-                        <span class="kakao-badge"><i class="fa-solid fa-comment"></i> Kakao 연동됨</span>
+                        <span class="kakao-badge" id="connectionStatus" style="display: none;">
+                            <i class="fa-solid fa-comment"></i> Kakao 연동됨
+                        </span>
                     </div>
-                    <div class="info-actions">
-                        <a href="#">이메일 변경</a>
-                        <a href="#">비밀번호 변경</a>
                     </div>
-                </div>
+            </div>
+        </section>
+        
+        <section class="card account-card">
+            <div class="card-header">
+                <h3>계정 연결</h3>
+            </div>
+            <div class="account-content">
+                <button class="kakao-btn-full" id="kakaoAuthBtn">
+                    <i class="fa-solid fa-comment"></i> Kakao 로그인 연결
+                </button>
+                
+                <a href="#" class="logout-link" id="logoutLink" style="display: none;">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> 로그아웃
+                </a>
             </div>
         </section>
 
@@ -111,19 +124,6 @@
                 <li class="danger"><a href="#" onclick="return confirm('정말 삭제하시겠습니까?')"><i class="fa-regular fa-trash-can"></i> 전체 데이터 삭제</a></li>
             </ul>
         </section>
-
-        <section class="card account-card">
-            <div class="card-header">
-                <h3>계정 연결</h3>
-            </div>
-            <div class="account-content">
-                <button class="kakao-btn-full">
-                    <i class="fa-solid fa-comment"></i> Kakao 계정 연동됨
-                </button>
-                <a href="#" class="logout-link"><i class="fa-solid fa-arrow-right-from-bracket"></i> 로그아웃</a>
-            </div>
-        </section>
-
     </main>
 
     <script src="setting.js"></script>

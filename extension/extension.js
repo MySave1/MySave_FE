@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const tagInput = document.getElementById('tagInput');
-    const tagContainer = document.getElementById('tagContainer'); // 입력된 태그 표시 영역
-    const tagChoiceContainer = document.createElement('div'); // 기존 태그 선택 영역 생성
-    tagChoiceContainer.className = 'tag-selection-area';
-    tagInput.parentNode.appendChild(tagChoiceContainer);
 
+    // 1. 기본 설정 및 변수 선언
+    const API_BASE_URL = "http://localhost:8080"; // 백엔드 주소
+
+    const tagInput = document.getElementById('tagInput');
+    const tagContainer = document.getElementById('tagContainer');
     let tags = [];
 
     const toggleBtn = document.getElementById('reminderToggle');
@@ -14,44 +14,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const dateDisplay = document.getElementById('dateDisplay');
     const quickBtns = document.querySelectorAll('.quick-btn');
 
-    // 1. 초기 데이터 로드: 웹 앱의 태그 목록 가져오기
-    function loadExistingTags() {
-        // localStorage는 확장 프로그램과 웹 페이지가 공유되지 않으므로, 
-        // 실제 운영 시에는 chrome.storage를 통합해서 사용하거나 
-        // 우선은 기본 저장된 태그 목록을 동기화하는 로직이 필요합니다.
-        chrome.storage.local.get(['myTagList'], (result) => {
-            const myTagList = result.myTagList || [];
-            tagChoiceContainer.innerHTML = '';
-            
-            myTagList.forEach(tag => {
-                const chip = document.createElement('div');
-                chip.className = 'choice-tag'; // CSS는 dashboard.css의 스타일을 참고
-                chip.style.cssText = `background-color: ${tag.color || '#eee'}; color: #333; padding: 4px 8px; border-radius: 12px; font-size: 11px; cursor: pointer; margin-right: 4px; display: inline-block; margin-top: 5px;`;
-                chip.textContent = `#${tag.name}`;
-                
-                chip.onclick = () => {
-                    if (!tags.includes(tag.name)) {
-                        tags.push(tag.name.toUpperCase());
-                        renderTags();
-                    }
-                };
-                tagChoiceContainer.appendChild(chip);
-            });
-        });
-    }
-    loadExistingTags();
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const currentTab = tabs[0];
 
-    // 2. 태그 입력 (대문자 변환 로직)
+        // 크롬 내부 페이지 예외 처리
+        if (currentTab.url.startsWith('chrome://') || currentTab.url.startsWith('chrome-extension://')) {
+            document.getElementById('pageTitle').value = currentTab.title || '내부 페이지';
+            document.getElementById('pageUrl').value = currentTab.url;
+            document.getElementById('selectedText').value = '선택된 텍스트 없음 (내부 페이지)';
+            return; 
+        }
+
+        // 값 채우기
+        document.getElementById('pageTitle').value = currentTab.title;
+        document.getElementById('pageUrl').value = currentTab.url;
+
+        chrome.scripting.executeScript({
+            target: { tabId: currentTab.id },
+            func: () => window.getSelection().toString()
+        }, (results) => {
+            if (results && results[0] && results[0].result) {
+                document.getElementById('selectedText').value = results[0].result;
+            }
+        });
+    });
+
+    // 2. 태그 (Input Text 기능)
     tagInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault(); 
-            let newTag = tagInput.value.trim().toUpperCase(); // ⭐ 대문자로 변환
+
+            let newTag = tagInput.value.trim().toUpperCase();
             if (newTag.length > 0) {
                 const newTagsArray = newTag.split(',')
                     .map(tag => tag.trim().replace(/^#/, ''))
                     .filter(tag => tag.length > 0 && !tags.includes(tag));
+                
                 tags.push(...newTagsArray);
             }
+
             tagInput.value = '';
             renderTags();
         }
@@ -67,55 +68,184 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.querySelectorAll('.tag-chip i').forEach(icon => {
-            icon.onclick = (e) => {
-                tags.splice(parseInt(e.target.dataset.idx), 1);
+            icon.addEventListener('click', (e) => {
+                const indexToRemove = parseInt(e.target.dataset.idx); 
+                tags.splice(indexToRemove, 1);
                 renderTags();
-            };
+            });
         });
     }
 
-    // 3. 리마인드 및 기타 UI 로직 (기존 유지)
-    // ... (중략: updateDateDisplay, applyQuickDate 등 기존 원본 로직)
-
-    // 4. 저장하기 (통계 및 대문자 태그 연동 핵심)
-    document.getElementById('saveBtn').addEventListener('click', () => {
-        const title = document.getElementById('pageTitle').value.trim();
-        if (!title) { alert("제목을 입력해주세요."); return; }
-
-        // [날짜 포맷 통일] 오늘 저장한 글 통계 연동을 위해 YYYY.MM.DD 형식 사용
-        const now = new Date();
-        const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
-
-        // 입력창에 남아있는 텍스트 마지막으로 체크
-        if (tagInput.value.trim().length > 0) {
-            const lastTag = tagInput.value.trim().toUpperCase();
-            if(!tags.includes(lastTag)) tags.push(lastTag);
+    // 3. 리마인드 (기존 로직 유지)
+    function updateDateDisplay(dateStr) {
+        if(!dateStr) {
+            dateDisplay.innerText = "직접 날짜 / 시간 선택하기";
+            calendarTrigger.style.borderColor = "";
+            calendarTrigger.style.backgroundColor = "";
+            return;
         }
+        const dateObj = new Date(dateStr);
+        const month = dateObj.getMonth() + 1;
+        const day = dateObj.getDate();
+        const hour = dateObj.getHours().toString().padStart(2, '0');
+        const min = dateObj.getMinutes().toString().padStart(2, '0');
+        dateDisplay.innerText = `${month}월 ${day}일 ${hour}:${min}`;
+        
+        calendarTrigger.style.borderColor = "rgba(52, 84, 130, 1)";
+        calendarTrigger.style.backgroundColor = "rgba(52, 82, 130, 0.11)";
+    }
 
-        const newBookmark = {
-            id: Date.now(),
-            url: document.getElementById('pageUrl').value,
-            title: title,
-            content: document.getElementById('selectedText').value,
-            memo: document.getElementById('memo').value,
-            tag: tags.length > 0 ? tags[0] : 'ETC', // 첫 번째 태그를 대표 태그로 저장
-            tags: tags,
-            date: dateStr, // ⭐ "오늘 저장한 글" 통계에 잡히도록 포맷팅
-            isStarred: false,
-            isRead: false,
-            hasSummary: !!document.getElementById('selectedText').value,
-            reminderTime: toggleBtn.checked ? new Date(dateInput.value).toISOString() : null
-        };
+    toggleBtn.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            reminderOptions.style.display = 'block';
+        } else {
+            reminderOptions.style.display = 'none';
+            dateInput.value = '';
+            quickBtns.forEach(btn => btn.classList.remove('active'));
+            updateDateDisplay(null);
+        }
+    });
 
-        // 데이터 저장
-        chrome.storage.local.get(['bookmarks'], (result) => { 
-            const bookmarks = result.bookmarks || []; 
-            bookmarks.unshift(newBookmark);
-            chrome.storage.local.set({ bookmarks: bookmarks }, () => { 
-                // ✅ 통계 동기화를 위해 대시보드 새로고침용 메시지 전송 (선택 사항)
-                document.getElementById('statusMsg').innerText = "✅ 성공적으로 저장되었습니다!";
-                setTimeout(() => window.close(), 1000);
-            });
+    calendarTrigger.addEventListener('click', () => {
+        try { dateInput.showPicker(); } catch (err) { dateInput.focus(); dateInput.click(); }
+    });
+
+    dateInput.addEventListener('change', () => {
+        quickBtns.forEach(b => b.classList.remove('active'));
+        updateDateDisplay(dateInput.value);
+    });
+    
+    function formatDateTime(date) {
+        const offset = date.getTimezoneOffset() * 60000;
+        return (new Date(date - offset)).toISOString().slice(0, 16);
+    }
+    
+    function setQuickDate(daysToAdd, hour) {
+        const d = new Date();
+        d.setDate(d.getDate() + daysToAdd);
+        d.setHours(hour, 0, 0, 0);
+        return d;
+    }
+
+    function applyQuickDate(dateObj, btnId) {
+        const formatted = formatDateTime(dateObj);
+        dateInput.value = formatted;
+        updateDateDisplay(formatted);
+        
+        quickBtns.forEach(b => b.classList.remove('active'));
+        const btn = document.getElementById(btnId);
+        if(btn) btn.classList.add('active');
+
+        if(!toggleBtn.checked) {
+            toggleBtn.checked = true;
+            reminderOptions.style.display = 'block';
+        }
+    }
+
+    const btnTomorrow = document.getElementById('btnTomorrow');
+    if(btnTomorrow) {
+        btnTomorrow.addEventListener('click', function() {
+            applyQuickDate(setQuickDate(1, 9), this.id);
         });
+    }
+
+    const btnWeekend = document.getElementById('btnWeekend');
+    if(btnWeekend) {
+        btnWeekend.addEventListener('click', function() {
+            const d = new Date();
+            const day = d.getDay();
+            const dist = 6 - day + (day === 6 ? 7 : 0);
+            d.setDate(d.getDate() + dist);
+            d.setHours(10, 0, 0, 0);
+            applyQuickDate(d, this.id);
+        });
+    }
+
+    const btnNextWeek = document.getElementById('btnNextWeek');
+    if(btnNextWeek) {
+        btnNextWeek.addEventListener('click', function() {
+            const d = new Date();
+            const day = d.getDay();
+            const daysToNextMonday = (1 + 7 - day) % 7 || 7;
+            d.setDate(d.getDate() + daysToNextMonday);
+            d.setHours(9, 0, 0, 0);
+            applyQuickDate(d, this.id);
+        });
+    }
+
+    // 4. 저장하기
+    document.getElementById('saveBtn').addEventListener('click', () => {
+        
+        if (tagInput.value.trim().length > 0) {
+            const inputTags = tagInput.value.split(',')
+                .map(t => t.trim().replace(/^#/, '').toUpperCase())
+                .filter(t => t.length > 0 && !tags.includes(t));
+            tags.push(...inputTags);
+            tagInput.value = '';
+            renderTags();
+        }
+        
+        chrome.storage.local.get(['accessToken', 'userId'], async (result) => { 
+            const token = result.accessToken;
+            const userId = result.userId ? Number(result.userId) : 1; // 기본값 1
+
+            if (!token) {
+                document.getElementById('statusMsg').innerText = "로그인이 필요합니다!";
+                document.getElementById('statusMsg').style.color = "red";
+                return;
+            }
+
+            const bookmarkData = {
+                userId: userId,
+                url: document.getElementById('pageUrl').value,
+                title: document.getElementById('pageTitle').value,
+                content: document.getElementById('selectedText').value,
+                memo: document.getElementById('memo').value,
+                tags: tags,
+                reminderAt: toggleBtn.checked && dateInput.value ? new Date(dateInput.value).toISOString() : null
+            };
+
+            if (!bookmarkData.title.trim()) {
+                document.getElementById('statusMsg').innerText = "제목을 입력해주세요.";
+                return;
+            }
+
+            document.getElementById('statusMsg').innerText = "서버에 저장 중...";
+            document.getElementById('statusMsg').style.color = "blue";
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/bookmarks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(bookmarkData)
+                });
+
+                if (response.ok) {
+                    document.getElementById('statusMsg').innerText = "✅ 저장 성공!";
+                    document.getElementById('statusMsg').style.color = "green";
+                    setTimeout(() => window.close(), 1000);
+                } else {
+                    document.getElementById('statusMsg').innerText = `실패 (${response.status})`;
+                    document.getElementById('statusMsg').style.color = "red";
+                }
+            } catch (error) {
+                console.error("저장 에러:", error);
+                document.getElementById('statusMsg').innerText = "서버 연결 불가";
+                document.getElementById('statusMsg').style.color = "red";
+            }
+        });
+    });
+
+    // 5. 페이지 이동 기능
+    const baseUrl = 'http://127.0.0.1:5500/';
+    document.getElementById('goToDashboardBtn').addEventListener('click', () => {
+        chrome.tabs.create({ url: `${baseUrl}dashboard/dashboard.html` });
+    });
+
+    document.getElementById('goToBookmarkListBtn').addEventListener('click', () => {
+        chrome.tabs.create({ url: `${baseUrl}bookmark/bookmark.html` });
     });
 });

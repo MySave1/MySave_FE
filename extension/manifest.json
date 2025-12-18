@@ -4,6 +4,10 @@
     "version": "1.0",
     "description": "현재 페이지를 MySave 대시보드에 저장합니다.",
     "permissions": ["activeTab", "storage", "scripting"],
+    "host_permissions": [
+      "http://localhost:8080/*",
+      "https://*.ngrok-free.app/*"
+    ],
     "action": {
       "default_popup": "extension.html",
       "default_icon": {

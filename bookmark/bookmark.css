@@ -371,7 +371,8 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
     .filters { flex-wrap: wrap; }
 }
 @media (max-width: 576px) {
-    .stats-grid, .card-grid.dashboard-recent, .card-grid.three-columns { grid-template-columns: 1fr; }
+    .stats-grid, .card-grid.dashboard-recent, .c
+    ard-grid.three-columns { grid-template-columns: 1fr; }
 }
 
 /* ================= 카드 반응형 효과 (Hover & Click) ================= */
