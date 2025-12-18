@@ -125,7 +125,7 @@ function renderGroup(container, group) {
     
     group.items.forEach(item => {
         // URL에서 도메인만 추출 (예: https://naver.com -> naver.com)
-        let hostname = 'No link';
+        let hostname = '';
         try { if (item.url) hostname = new URL(item.url).hostname; } catch (e) {}
 
         itemsHTML += `
@@ -141,12 +141,6 @@ function renderGroup(container, group) {
                         <span class="item-title">${item.title}</span>
                         <span class="item-link-text">${hostname}</span>
                     </div>
-                </div>
-                <div class="item-right">
-                    ${item.url ? `
-                    <a href="${item.url}" class="item-action" target="_blank" onclick="event.stopPropagation()">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> 원본 글 보기
-                    </a>` : ''}
                 </div>
             </div>
         `;

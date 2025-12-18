@@ -12,25 +12,38 @@ const itemsPerPage = 12;
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.querySelector('.search-container input');
     
-    // 1. URL 파라미터 처리 (대시보드/태그 페이지에서 넘어왔을 때)
+    // --- [기능 1] URL 파라미터 처리 및 제목 동적 변경 ---
     const urlParams = new URLSearchParams(window.location.search);
     const tagParam = urlParams.get('tag'); 
     const searchParam = urlParams.get('q'); 
 
+    // 제목 요소 선택
+    const pageTitleElement = document.querySelector('.page-header h2') || document.querySelector('.title-area h2');
+
     if (searchInput) {
         if (tagParam) {
-            searchInput.value = `#${tagParam.toUpperCase()}`; // 태그는 대문자로 표시
+            // 태그 클릭으로 왔을 때
+            searchInput.value = `#${tagParam.toUpperCase()}`;
+            if (pageTitleElement) pageTitleElement.textContent = `# ${tagParam} 페이지 목록`;
         } else if (searchParam) {
+            // 검색 엔터로 왔을 때
             searchInput.value = searchParam;
+            if (pageTitleElement) pageTitleElement.textContent = `'${searchParam}' 검색 결과`;
+        } else {
+            // 기본 상태
+            if (pageTitleElement) pageTitleElement.textContent = "전체 페이지 목록";
         }
 
+        // 실시간 검색 기능 (입력할 때마다 변동)
         searchInput.addEventListener('input', () => {
             currentPage = 1; 
+            // 검색어 입력 시 제목도 실시간으로 변경하고 싶다면 아래 주석 해제
+            // if (pageTitleElement) pageTitleElement.textContent = searchInput.value ? `'${searchInput.value}' 검색 중...` : "전체 페이지 목록";
             renderBookmarks();
         });
     }
 
-    // 2. 필터 버튼 이벤트
+    // --- [기능 2] 필터 버튼 이벤트 ---
     const filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -42,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 3. 정렬 버튼 이벤트
+    // --- [기능 3] 정렬 버튼 이벤트 ---
     const sortBtn = document.querySelector('.sort-btn');
     if (sortBtn) {
         sortBtn.addEventListener('click', () => {
@@ -67,7 +80,6 @@ function renderBookmarks() {
     const searchInput = document.querySelector('.search-container input');
     const searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
-    // 대시보드와 동일한 'bookmarks' 키 사용
     const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
 
     // --- [1단계] 탭 필터링 ---
@@ -76,7 +88,7 @@ function renderBookmarks() {
     else if (currentFilterType === 'read') filteredData = bookmarks.filter(item => item.isRead);
     else if (currentFilterType === 'unread') filteredData = bookmarks.filter(item => !item.isRead);
 
-    // --- [2단계] 검색어/태그 필터링 ---
+    // --- [2단계] 검색어/태그 필터링 (실시간 반영) ---
     if (searchQuery !== '') {
         if (searchQuery.startsWith('#')) {
             const tagKeyword = searchQuery.substring(1);
@@ -103,7 +115,7 @@ function renderBookmarks() {
         }
     });
 
-    // --- [4단계] 페이지네이션 ---
+    // --- [4단계] 페이지네이션 로직 ---
     const totalItems = filteredData.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
     if (currentPage > totalPages) currentPage = totalPages;
@@ -132,18 +144,12 @@ function renderBookmarks() {
         const card = document.createElement('div');
         card.className = 'card';
         
-        // 요약 태그 스타일 (이미지가 없을 때 배경색만 나오게 처리)
-        let summaryTag = '';
-        if (item.hasSummary) {
-            summaryTag = `<span class="summary-tag" style="display: inline-flex !important; white-space: nowrap !important; align-items: center; justify-content: center; height: 20px; padding: 0 10px; background: rgba(255,255,255,0.9); border-radius: 14px; font-size: 12px; font-weight: 400; color: #3182F6; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: absolute; top: 10px; right: 10px;">요약됨</span>`;
-        } else {
-            summaryTag = `<span class="summary-tag" style="display: inline-flex !important; white-space: nowrap !important; align-items: center; justify-content: center; height: 20px; padding: 0 10px; background: rgba(255, 255, 255, 0.9); border-radius: 14px; font-size: 12px; font-weight: 400; color: #555; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: absolute; top: 10px; right: 10px; cursor: pointer;" onclick="event.stopPropagation();">요약하기</span>`;
-        }
+        // 요약 배지 (고정: 요약하기)
+        let summaryTag = `<span class="summary-tag" style="display: inline-flex !important; white-space: nowrap !important; align-items: center; justify-content: center; height: 20px; padding: 0 10px; background: rgba(255, 255, 255, 0.9); border-radius: 14px; font-size: 12px; font-weight: 400; color: #555; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: absolute; top: 10px; right: 10px; cursor: pointer;" onclick="event.stopPropagation();">요약하기</span>`;
 
         const starClass = item.isStarred ? 'fa-solid fa-star active' : 'fa-regular fa-star';
         const starColor = item.isStarred ? '#facc15' : '';
 
-        // 카드 내부 구조
         card.innerHTML = `
             <div class="card-img" style="background-color: ${item.bgColor || '#f0f2f5'}; height:160px; position:relative;">
                 ${summaryTag}

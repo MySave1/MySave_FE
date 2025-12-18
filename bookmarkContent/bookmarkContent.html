@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bookmark Content</title>
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <link rel="stylesheet" href="bookmarkcontent.css">
 </head>
 <body>
@@ -41,6 +39,10 @@
                         <h1 id="detailTitle">Loading...</h1>
                         
                         <div class="action-buttons" style="display:flex; gap: 10px; align-items: center;">
+                            <button id="mainEditBtn" style="padding: 8px 16px; border-radius: 20px; border: 1px solid #3182F6; background: #fff; color: #3182F6; cursor: pointer; font-weight: 600; font-size: 13px;">
+                                수정하기
+                            </button>
+
                             <button id="readStatusBtn" class="btn-read-status">
                                 <i class="fa-solid fa-check"></i> <span>읽음</span>
                             </button>
@@ -66,10 +68,10 @@
                         <h3>AI 요약 노트</h3>
                     </div>
                     <div class="card-content">
-                        <p id="detailAiSummary">요약 내용이 없습니다. 요약 생성 버튼을 눌러주세요.</p>
+                        <p id="detailAiSummary">요약 내용이 없습니다.</p>
                     </div>
                     <div class="card-footer">
-                        <button class="btn-light-blue" id="generateSummaryBtn">요약 다시 생성하기</button>
+                        <button class="btn-light-blue" id="generateSummaryBtn">요약 생성하기</button>
                     </div>
                 </div>
 
@@ -86,28 +88,27 @@
                 </div>
 
                 <div class="card reminder-card">
-                    <div class="card-title">
-                        <i class="fa-regular fa-clock"></i> 
-                        <h3> 리마인드 설정</h3>
+                    <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-regular fa-bell" style="font-size: 18px;"></i> 
+                        <h3 style="margin: 0; font-size: 1.17rem; font-weight: 700;">리마인드 설정</h3>
                     </div>
-
                     <div class="card-content">
-                        <p id="reminderDisplay" style="color: #333; font-size: 14px; margin-top: 8px;">리마인드가 설정되지 않았습니다.</p>
-                        
+                        <div id="reminderDisplay" style="margin-top: 12px;">
+                            <p style="color: #aaa; font-size: 14px;">리마인드가 설정되지 않았습니다.</p>
+                        </div>
                         <div id="reminderInputArea" style="display: none; margin-top: 10px;">
                             <input type="datetime-local" id="reminderDateInput" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px;">
                         </div>
                     </div>
-                    <div class="card-footer">
+                    <div class="card-footer" style="margin-top: 15px; display: flex; gap: 8px;">
                         <button class="btn-light-blue" id="toggleReminderBtn">설정하기</button>
-                        <button class="btn-light-blue" id="saveReminderBtn" style="display: none; background-color: #4CAF50; color: white;">저장</button>
-                        <button class="btn-light-blue" id="deleteReminderBtn" style="display: none; background-color: #ff5252; color: white; margin-left: 5px;">삭제</button>
+                        <button class="btn-light-blue" id="saveReminderBtn" style="display: none; background-color: #3182F6; color: white;">저장</button>
+                        <button class="btn-light-blue" id="deleteReminderBtn" style="display: none; background-color: #ff5252; color: white;">삭제</button>
                     </div>
                 </div>
             </aside>
         </div>
     </main>
-
     <script src="bookmarkcontent.js"></script>
 </body>
 </html>
