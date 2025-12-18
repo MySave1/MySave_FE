@@ -27,8 +27,6 @@ function getTagList() {
 function saveTagList(tags) {
     localStorage.setItem('myTagList', JSON.stringify(tags));
 }
-
-// =============================
 // 2. 핵심 기능 (삭제, 별표 토글)
 // =============================
 function deleteBookmark(id) {
