@@ -76,57 +76,73 @@ function updateDashboardStats() {
     const now = getNow();
     const todayStr = toDateStr(now);
 
-    // 1) 오늘 저장 건수
+    // 1. 오늘 저장 건수
     const todaySavedEl = document.querySelector(".stat-card:nth-child(1) .stat-value");
     if (todaySavedEl) {
         const count = bookmarks.filter(b => b.date === todayStr).length;
         todaySavedEl.innerHTML = `${count} <span class="unit">건</span>`;
     }
 
-    // 2) 미완료 리마인드
+    // 2. 미완료 리마인드 (전체 및 오늘 마감)
     const totalRemindEl = document.getElementById("totalReminderCount");
     const todayRemindDesc = document.getElementById("todayReminderDesc");
     const activeReminders = bookmarks.filter(b => b.reminderTime && !b.isRead);
+    
     if (totalRemindEl) totalRemindEl.textContent = activeReminders.length;
     if (todayRemindDesc) {
         const dueToday = activeReminders.filter(r => new Date(r.reminderTime).toDateString() === now.toDateString()).length;
         todayRemindDesc.textContent = `오늘 마감되는 항목 ${dueToday} 건`;
     }
 
-    // 3) 태그 및 사이드바 (색상 통일 문제 해결)
     const tagCount = {};
-    bookmarks.forEach(b => { const t = (b.tag || "ETC").toUpperCase(); tagCount[t] = (tagCount[t] || 0) + 1; });
-    const sortedTags = Object.entries(tagCount).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
-    
-    // Top 1 태그 표시
-    const topTagEl = document.querySelector(".stat-card:nth-child(3) .stat-value");
-    if (topTagEl) topTagEl.innerHTML = sortedTags.length ? `${sortedTags[0].name} <span class="badge">Top 1</span>` : "없음";
+    bookmarks.forEach(b => { 
+        const t = (b.tag || "ETC").toUpperCase(); 
+        tagCount[t] = (tagCount[t] || 0) + 1; 
+    });
 
-    // 사이드바 태그 클라우드 (태그 관리에서 설정한 색상 반영)
+    const sortedTags = Object.entries(tagCount)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    
+    const topTagEl = document.querySelector(".stat-card:nth-child(3) .stat-value");
+    if (topTagEl) {
+        topTagEl.innerHTML = sortedTags.length 
+            ? `${sortedTags[0].name} <span class="badge">Top 1</span>` 
+            : "없음";
+    }
+
+    // 사이드바 태그 클라우드 렌더링
     const cloud = document.querySelector(".tag-cloud");
     if (cloud) {
         cloud.innerHTML = "";
         const masterTags = getTagList();
+
         sortedTags.slice(0, 5).forEach(tag => {
             const info = masterTags.find(m => m.name.toUpperCase() === tag.name);
+            
             const span = document.createElement("span");
             span.className = "tag-pill";
             span.textContent = `#${tag.name}`;
-            // 마스터 태그에 등록된 색상이 있으면 사용, 없으면 기본색
+            
             span.style.backgroundColor = info ? (info.color || info.bg) : "#3182F64D";
-            span.onclick = () => location.href = `../bookmark/bookmark.html?tag=${tag.name}`;
+            
+            span.onclick = () => {
+                location.href = `../bookmark/bookmark.html?tag=${encodeURIComponent(tag.name)}`;
+            };
             cloud.appendChild(span);
         });
     }
 
-    // 4) 주간 읽기 달성률 (데이터 계산 중 해결)
-    const weeklyRateEl = document.getElementById("weeklyRate");
+    // 4. 읽기 달성률 (Progress)
+    const rateEl = document.querySelector(".stat-card:nth-child(4) .stat-value");
     const weeklyDescEl = document.getElementById("weeklyDesc");
-    if (weeklyRateEl) {
+    
+    if (rateEl) {
         const total = bookmarks.length;
         const readCount = bookmarks.filter(b => b.isRead).length;
         const rate = total === 0 ? 0 : Math.round((readCount / total) * 100);
-        weeklyRateEl.textContent = rate;
+        rateEl.innerHTML = `${rate} <span class="unit">%</span>`;
+        
         if (weeklyDescEl) {
             weeklyDescEl.textContent = total === 0 ? "저장된 글이 없습니다." : `전체 ${total}개 중 ${readCount}개 읽음`;
         }
@@ -139,16 +155,34 @@ function updateDashboardStats() {
 function renderCards(data) {
     const container = document.getElementById("cardContainer");
     if (!container) return;
+    
+    // 데이터가 없을 때의 처리
     container.innerHTML = data.length ? "" : '<p style="grid-column:1/-1; text-align:center; color:#ccc; padding:50px;">저장된 북마크가 없습니다.</p>';
 
     data.forEach(item => {
         const card = document.createElement("div");
         card.className = "card";
-        const bgStyle = item.image ? `background-image:url('${item.image}'); background-size:cover;` : `background-color:${item.bgColor || "#eee"};`;
         
+        // 배경 이미지 또는 기본 배경색 설정
+        const bgStyle = item.image 
+            ? `background-image:url('${item.image}'); background-size:cover; background-position:center;` 
+            : `background-color:${item.bgColor || "#eee"};`;
+        
+        // 리마인드 아이콘 정의 (리마인드 설정 시에만 생성)
+        const reminderIcon = item.reminderTime 
+            ? `<div class="control-icon reminder-icon" title="리마인드 설정됨">
+                    <i class="fa-solid fa-bell"></i>
+               </div>` 
+            : "";
+
         card.innerHTML = `
-            <div class="card-img" style="${bgStyle} height:160px; position:relative;">
-                <div class="card-delete-btn" onclick="event.stopPropagation(); deleteBookmark(${item.id})"><i class="fa-solid fa-trash-can"></i></div>
+            <div class="card-img" style="${bgStyle} height:160px; position:relative; overflow:hidden;">
+                <div class="card-controls">
+                    ${reminderIcon}
+                    <div class="control-icon delete-icon" onclick="event.stopPropagation(); deleteBookmark(${item.id})">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
                 <h4 class="card-title">${item.title}</h4>
@@ -162,7 +196,13 @@ function renderCards(data) {
                     </div>
                 </div>
             </div>`;
-        card.onclick = () => { localStorage.setItem("currentBookmarkId", item.id); location.href = `../bookmarkContent/bookmarkContent.html?id=${item.id}`; };
+
+        // 카드 클릭 시 상세 페이지 이동
+        card.onclick = () => { 
+            localStorage.setItem("currentBookmarkId", item.id); 
+            location.href = `../bookmarkContent/bookmarkContent.html?id=${item.id}`; 
+        };
+        
         container.appendChild(card);
     });
 }
