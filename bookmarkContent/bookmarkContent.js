@@ -96,7 +96,15 @@ function renderDetail(data) {
 function setupEventListeners(currentData, allBookmarks) {
     document.querySelector('.btn-back').onclick = (e) => {
         e.preventDefault();
-        window.location.href = `../bookmark/bookmark.html`;
+        const prevPage = document.referrer;
+
+        if (prevPage.includes('dashboard.html')) {
+            window.location.href = '../dashboard/dashboard.html';
+        } else if (prevPage.includes('bookmark.html')) {
+            window.location.href = '../bookmark/bookmark.html';
+        } else {
+            window.location.href = '../bookmark/bookmark.html';
+        }
     };
     document.getElementById('mainEditBtn').onclick = () => toggleMainContentEdit(currentData, allBookmarks);
     document.getElementById('detailStarBtn').onclick = function() {

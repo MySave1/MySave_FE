@@ -195,91 +195,82 @@ document.addEventListener('DOMContentLoaded', () => {
       applyQuickDate(d, this.id);
     });
   
-    // 4. 저장하기 (핵심 수정)
-    document.getElementById('saveBtn').addEventListener('click', async () => {
-  
-      // 입력 중이던 태그 반영
-      if (tagInput.value.trim().length > 0) {
-        const inputTags = tagInput.value.split(',')
-          .map(t => t.trim().replace(/^#/, '').toUpperCase())
-          .filter(t => t.length > 0 && !tags.includes(t));
-        tags.push(...inputTags);
-        tagInput.value = '';
-        renderTags();
+    // 4. 저장하기 (서버 연동 최적화)
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+
+    // 입력 중이던 태그 반영 로직 (기존 유지)
+    if (tagInput.value.trim().length > 0) {
+      const inputTags = tagInput.value.split(',')
+        .map(t => t.trim().replace(/^#/, '').toUpperCase())
+        .filter(t => t.length > 0 && !tags.includes(t));
+      tags.push(...inputTags);
+      tagInput.value = '';
+      renderTags();
+    }
+
+    const title = document.getElementById('pageTitle').value;
+    if (!title.trim()) {
+      setStatus("제목을 입력해주세요.", "red");
+      return;
+    }
+
+    // [중요] 웹 대시보드의 토큰을 가져오기 위한 시도
+    // 1. 확장 프로그램 자체 스토리지 확인
+    // 2. 만약 없다면 현재 탭(웹 페이지)의 localStorage에서 토큰을 긁어오는 기능 추가 가능
+    chrome.storage.local.get(['accessToken', 'userId'], async (result) => {
+      let token = result.accessToken;
+      
+      // 만약 스토리지가 비어있다면, 현재 열린 웹페이지가 내 서비스 페이지일 때 토큰 추출 시도
+      if (!token) {
+        setStatus("로그인 정보를 확인하는 중...", "blue");
+        // 이 부분은 나중에 '웹 로그인 시 확장 프로그램으로 토큰 전송' 로직으로 보완 필요
       }
-  
-      // 제목 체크
-      const title = document.getElementById('pageTitle').value;
-      if (!title.trim()) {
-        setStatus("제목을 입력해주세요.", "red");
+
+      const bookmarkData = {
+        url: document.getElementById('pageUrl').value,
+        title: document.getElementById('pageTitle').value,
+        content: document.getElementById('selectedText').value,
+        memo: document.getElementById('memo').value,
+        tags: tags, // 배열 형태
+        reminderAt: toggleBtn.checked && dateInput.value ? new Date(dateInput.value).toISOString() : null
+      };
+
+      // 1) 로컬 저장 (백업용)
+      await saveToLocalBookmark({...bookmarkData, createdAt: new Date().toISOString()});
+
+      // 2) 토큰이 없으면 여기서 종료
+      if (!token) {
+        setStatus("로컬에 임시 저장되었습니다. (로그인 필요)", "orange");
         return;
       }
-  
-      // 토큰/유저정보 가져오기 (없으면 guest)
-      const localUser = await ensureLocalUser();
-  
-      chrome.storage.local.get(['accessToken', 'userId', 'userName', 'userEmail'], async (result) => {
-        const token = result.accessToken || null;
-  
-        const bookmarkData = {
-          // 서버용/로컬용 겸용
-          userId: result.userId || localUser.userId, // guest 가능
-          userName: result.userName || localUser.userName,
-          userEmail: result.userEmail || localUser.userEmail,
-  
-          url: document.getElementById('pageUrl').value,
-          title: document.getElementById('pageTitle').value,
-          content: document.getElementById('selectedText').value,
-          memo: document.getElementById('memo').value,
-          tags: tags,
-          reminderAt: toggleBtn.checked && dateInput.value ? new Date(dateInput.value).toISOString() : null,
-  
-          createdAt: new Date().toISOString()
-        };
-  
-        // 1) 무조건 로컬 저장부터
-        await saveToLocalBookmark(bookmarkData);
-        setStatus("로컬 저장 완료! (서버 저장 시도 중...)", "blue");
-  
-        // 2) 토큰 있으면 서버 저장 시도
-        if (!token) {
-          setStatus("저장 완료! (로그인 없이 로컬에 저장됨)", "green");
+
+      // 3) 서버 전송 (실제 연동)
+      try {
+        setStatus("서버에 저장 중...", "blue");
+        const response = await fetch(`${API_BASE_URL}/api/bookmarks`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // 서버가 이 형식을 기대함
+          },
+          body: JSON.stringify(bookmarkData)
+        });
+
+        if (response.ok) {
+          setStatus("서버 저장 성공!", "green");
+          // 저장 성공 시 대시보드 탭이 열려있다면 새로고침 명령을 보낼 수 있음
           setTimeout(() => window.close(), 800);
-          return;
+        } else if (response.status === 401) {
+          setStatus("인증 만료. 다시 로그인해주세요.", "red");
+        } else {
+          setStatus(`서버 오류 (${response.status})`, "red");
         }
-  
-        try {
-          const response = await fetch(`${API_BASE_URL}/api/bookmarks`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              userId: bookmarkData.userId,
-              url: bookmarkData.url,
-              title: bookmarkData.title,
-              content: bookmarkData.content,
-              memo: bookmarkData.memo,
-              tags: bookmarkData.tags,
-              reminderAt: bookmarkData.reminderAt
-            })
-          });
-  
-          if (response.ok) {
-            setStatus("저장 성공! (서버 + 로컬)", "green");
-            setTimeout(() => window.close(), 800);
-          } else {
-            setStatus(`서버 저장 실패 (${response.status}) → 로컬 저장만 완료`, "orange");
-            setTimeout(() => window.close(), 1200);
-          }
-        } catch (error) {
-          console.error("서버 저장 에러:", error);
-          setStatus("서버 연결 불가 → 로컬 저장만 완료", "orange");
-          setTimeout(() => window.close(), 1200);
-        }
-      });
+      } catch (error) {
+        console.error("서버 연결 실패:", error);
+        setStatus("서버 연결 불가 (오프라인 저장)", "orange");
+      }
     });
+  });
   
   });
   
