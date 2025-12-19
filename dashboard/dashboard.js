@@ -3,8 +3,10 @@
 // =============================
 const initialDashboardData = [];
 
-// [시스템 기준 날짜 설정] 2025-12-18
-const SYSTEM_NOW = new Date("2025-12-18T13:54:00"); 
+// 고정된 날짜 대신 실시간 현재 날짜 사용 함수
+function getNow() {
+    return new Date();
+}
 
 function getDashboardData() {
     const stored = localStorage.getItem('bookmarks');
@@ -29,7 +31,7 @@ function saveTagList(tags) {
 }
 
 // =============================
-// 2. 핵심 기능 (삭제, 별표 토글)
+// 2. 핵심 기능 (삭제, 별표 토글, 검색)
 // =============================
 function deleteBookmark(id) {
     if (!confirm('정말로 이 북마크를 삭제하시겠습니까?')) return;
@@ -37,7 +39,6 @@ function deleteBookmark(id) {
     const filtered = allData.filter(item => item.id !== id);
     saveDashboardData(filtered);
     
-    // 삭제 후 현재 검색어 상태를 유지하며 다시 렌더링
     const searchInput = document.querySelector('.search-container input');
     if (searchInput && searchInput.value.trim() !== "") {
         handleSearch(searchInput.value.trim());
@@ -69,18 +70,13 @@ function toggleStar(element, id) {
     updateDashboardStats();
 }
 
-// [추가] 실시간 검색 처리 함수
 function handleSearch(query) {
     const allData = getDashboardData();
     const lowerQuery = query.toLowerCase();
-    
-    // 제목 또는 태그에 검색어가 포함된 항목 필터링
     const filtered = allData.filter(item => 
         (item.title && item.title.toLowerCase().includes(lowerQuery)) ||
         (item.tag && item.tag.toLowerCase().includes(lowerQuery))
     );
-    
-    // 필터링된 결과 렌더링 (최신순 정렬 후 최대 6개)
     filtered.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     renderCards(filtered.slice(0, 6));
 }
@@ -110,25 +106,22 @@ function renderCards(data) {
             card.style.border = 'none';
             card.style.boxShadow = 'none';
         }
-        const activeClass = item.isStarred ? 'active' : '';
         const starIconClass = item.isStarred ? 'fa-solid' : 'fa-regular';
         const starColor = item.isStarred ? '#facc15' : '#ccc';
         const unreadBadge = !item.isRead ? '<div class="unread-dot"></div>' : '';
         const bgStyle = item.image ? `background-image: url('${item.image}'); background-size: cover; background-position: center;` : `background-color: ${item.bgColor || '#eee'};`;
         const reminderBadge = item.reminderTime ? `<div style="width: 28px; height: 28px; background-color: rgba(255, 255, 255, 0.90); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fa-solid fa-bell" style="color: #3182F6; font-size: 13px;"></i></div>` : '';
 
-        let summaryTag = `<span class="summary-tag" style="color: #555;">요약하기</span>`;
-          
         card.innerHTML = `
             <div class="card-img" style="${bgStyle} height: 160px; position: relative; padding: 12px; display: flex; justify-content: space-between;">
                 <div style="display: flex; gap: 6px;">${unreadBadge}${reminderBadge}</div>
-                <div style="display: flex; gap: 8px; align-items: center;">${summaryTag}<div class="card-delete-btn"><i class="fa-solid fa-trash-can"></i></div></div>
+                <div style="display: flex; gap: 8px; align-items: center;"><span class="summary-tag" style="color: #555;">요약하기</span><div class="card-delete-btn"><i class="fa-solid fa-trash-can"></i></div></div>
             </div>
             <div class="card-body">
                 <h4 class="card-title">${item.title || ''}</h4>
                 <div class="card-footer">
                     <span class="tag-badge" style="background-color: ${item.tagColor || '#555'}">#${item.tag || ''}</span>
-                    <div class="date-star"><span>${item.date || ''}</span><i class="star-btn ${starIconClass} fa-star ${activeClass}" style="color: ${starColor};"></i></div>
+                    <div class="date-star"><span>${item.date || ''}</span><i class="star-btn ${starIconClass} fa-star" style="color: ${starColor};"></i></div>
                 </div>
             </div>
         `;
@@ -149,25 +142,19 @@ function renderSidebarReminders() {
     if (!container) return;
 
     const bookmarks = getDashboardData();
-    // 1. 리마인드가 있고 읽지 않은 항목들만 필터링
     let reminders = bookmarks.filter(item => item.reminderTime && !item.isRead);
 
     if (reminders.length === 0) {
-        container.innerHTML = `
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; color: #ccc;">
-                <i class="fa-regular fa-bell-slash" style="font-size: 30px; margin-bottom: 10px; opacity: 0.3;"></i>
-                <p style="font-size: 13px;">예정된 리마인드가 없습니다.</p>
-            </div>`;
+        container.innerHTML = `<div style="text-align: center; padding: 40px 0; color: #ccc;"><p>예정된 리마인드가 없습니다.</p></div>`;
         return;
     }
 
-    // 2. 시간순 정렬
     reminders.sort((a, b) => new Date(a.reminderTime) - new Date(b.reminderTime));
 
-    const todayStart = new Date(SYSTEM_NOW.getFullYear(), SYSTEM_NOW.getMonth(), SYSTEM_NOW.getDate());
+    const now = getNow();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const groups = { today: [], tomorrow: [], upcoming: [] };
 
-    // 3. 먼저 모든 리마인드를 그룹별로 분류
     reminders.forEach(item => {
         const itemDate = new Date(item.reminderTime);
         const itemDayStart = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
@@ -181,38 +168,22 @@ function renderSidebarReminders() {
         else if (diffDays > 1) groups.upcoming.push(item);
     });
 
-    // 4. 각 그룹별로 최대 4개씩만 남기기 (slice 적용)
-    const finalGroups = {
-        today: groups.today.slice(0, 4),
-        tomorrow: groups.tomorrow.slice(0, 4),
-        upcoming: groups.upcoming.slice(0, 4)
-    };
-
-    // 5. HTML 생성 및 출력
     let finalHTML = '';
-    if (finalGroups.today.length > 0) {
-        finalHTML += createSidebarGroupHTML('오늘', 'blue', finalGroups.today);
-    }
-    if (finalGroups.tomorrow.length > 0) {
-        finalHTML += createSidebarGroupHTML('내일', 'yellow', finalGroups.tomorrow);
-    }
-    if (finalGroups.upcoming.length > 0) {
-        finalHTML += createSidebarGroupHTML('이번주 / 다음주', 'gray', finalGroups.upcoming, true);
-    }
+    if (groups.today.length > 0) finalHTML += createSidebarGroupHTML('오늘', 'blue', groups.today.slice(0, 4));
+    if (groups.tomorrow.length > 0) finalHTML += createSidebarGroupHTML('내일', 'yellow', groups.tomorrow.slice(0, 4));
+    if (groups.upcoming.length > 0) finalHTML += createSidebarGroupHTML('예정', 'gray', groups.upcoming.slice(0, 4), true);
 
     container.innerHTML = finalHTML;
 }
 
 function createSidebarGroupHTML(label, color, items, showDate = false) {
     const listHTML = items.map(item => `
-        <div class="reminder-item" onclick="location.href='../bookmarkContent/bookmarkContent.html?id=${item.id}&from=dashboard'" style="cursor: pointer;">
+        <div class="reminder-item" onclick="location.href='../bookmarkContent/bookmarkContent.html?id=${item.id}'" style="cursor: pointer;">
             <span class="time">${showDate ? item.displayDate + ' ' : ''}${item.displayTime}</span>
-            <span class="task" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title}</span>
+            <span class="task">${item.title}</span>
         </div>
     `).join('');
-    const dotStyle = color === 'gray' ? 'style="background-color: #ff6b6b"' : '';
-    const dotClass = color !== 'gray' ? `dot ${color}` : 'dot';
-    return `<div class="day-group"><div class="day-label"><span class="${dotClass}" ${dotStyle}></span> ${label}</div>${listHTML}</div>`;
+    return `<div class="day-group"><div class="day-label"><span class="dot ${color}"></span> ${label}</div>${listHTML}</div>`;
 }
 
 function renderSidebarTags(tagDataArray) {
@@ -221,123 +192,40 @@ function renderSidebarTags(tagDataArray) {
     const sortedTags = tagDataArray.slice(0, 5);
     cloudContainer.innerHTML = '';
     
-    if (sortedTags.length === 0) {
-        cloudContainer.innerHTML = `
-            <div style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 0; color: #ccc;">
-                <i class="fa-solid fa-tags" style="font-size: 24px; margin-bottom: 10px; opacity: 0.3;"></i>
-                <p style="font-size: 12px;">아직 사용된 태그가 없습니다.</p>
-            </div>`;
-        return;
-    }
-    
     sortedTags.forEach((tagData) => {
-        const tagName = tagData.name;
         const storedTags = getTagList();
-        const tagInfo = storedTags.find(t => t.name === tagName);
-        const bgColor = tagInfo ? tagInfo.color : '#555';
+        const tagInfo = storedTags.find(t => t.name === tagData.name);
         const span = document.createElement('span');
         span.className = 'tag-pill';
-        span.textContent = `#${tagName}`;
-        span.style.backgroundColor = bgColor;
-        span.style.cursor = 'pointer';
-        span.onclick = () => { window.location.href = `../bookmark/bookmark.html?tag=${encodeURIComponent(tagName)}`; };
+        span.textContent = `#${tagData.name}`;
+        span.style.backgroundColor = tagInfo ? tagInfo.color : '#555';
+        span.onclick = () => { window.location.href = `../bookmark/bookmark.html?tag=${encodeURIComponent(tagData.name)}`; };
         cloudContainer.appendChild(span);
     });
 }
 
 function updateDashboardStats() {
     const bookmarks = getDashboardData();
-    const todayStr = `${SYSTEM_NOW.getFullYear()}.${String(SYSTEM_NOW.getMonth() + 1).padStart(2, '0')}.${String(SYSTEM_NOW.getDate()).padStart(2, '0')}`;
-    const yesterday = new Date(SYSTEM_NOW);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = `${yesterday.getFullYear()}.${String(yesterday.getMonth() + 1).padStart(2, '0')}.${String(yesterday.getDate()).padStart(2, '0')}`;
+    const now = getNow();
+    const todayStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
 
     const todaySavedEl = document.querySelector('.stat-card:nth-child(1) .stat-value');
-    const todayDescEl = document.querySelector('.stat-card:nth-child(1) .stat-desc');
     if (todaySavedEl) {
         const todayCount = bookmarks.filter(item => item.date === todayStr).length;
         todaySavedEl.innerHTML = `${todayCount} <span class="unit">건</span>`;
-        if (todayDescEl) {
-            if (bookmarks.length === 0) todayDescEl.textContent = "첫 북마크를 추가해보세요!";
-            else {
-                const yesterdayCount = bookmarks.filter(item => item.date === yesterdayStr).length;
-                if (todayCount > yesterdayCount) todayDescEl.textContent = `어제보다 ${todayCount - yesterdayCount}건 더 많이 저장됨`;
-                else todayDescEl.textContent = `어제와 동일한 양을 저장함`;
-            }
-        }
-    }
-
-    const reminderValueEl = document.querySelector('.stat-card:nth-child(2) .stat-value');
-    const reminderDescEl = document.querySelector('.stat-card:nth-child(2) .stat-desc');
-    if (reminderValueEl) {
-        const totalCount = bookmarks.filter(item => item.reminderTime && !item.isRead).length;
-        reminderValueEl.innerHTML = `${totalCount} <span class="unit">건</span>`;
-        const todayDue = bookmarks.filter(item => {
-            if (!item.reminderTime || item.isRead) return false;
-            const d = new Date(item.reminderTime);
-            return d.getFullYear() === SYSTEM_NOW.getFullYear() && d.getMonth() === SYSTEM_NOW.getMonth() && d.getDate() === SYSTEM_NOW.getDate();
-        }).length;
-        if (reminderDescEl) reminderDescEl.textContent = `오늘 마감되는 항목 ${todayDue}건`;
     }
 
     const tagAnalysis = {};
     bookmarks.forEach(item => {
         if (item.tag) {
-            if (!tagAnalysis[item.tag]) { tagAnalysis[item.tag] = { count: 0, latestId: 0 }; }
-            tagAnalysis[item.tag].count += 1;
-            if (item.id > tagAnalysis[item.tag].latestId) { tagAnalysis[item.tag].latestId = item.id; }
+            tagAnalysis[item.tag] = (tagAnalysis[item.tag] || 0) + 1;
         }
     });
 
-    const sortedTagArray = Object.entries(tagAnalysis).map(([name, data]) => ({
-        name, ...data
-    })).sort((a, b) => {
-        if (b.count !== a.count) return b.count - a.count;
-        return b.latestId - a.latestId;
-    });
+    const sortedTagArray = Object.entries(tagAnalysis)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
 
-    const topTagEl = document.querySelector('.stat-card:nth-child(3) .stat-value');
-    const topTagDescEl = document.querySelector('.stat-card:nth-child(3) .stat-desc');
-    
-    if (topTagEl && topTagDescEl) {
-        if (sortedTagArray.length > 0) {
-            const maxCount = sortedTagArray[0].count;
-            const jointCount = sortedTagArray.filter(t => t.count === maxCount).length - 1;
-            const plusBadge = jointCount > 0 ? `<span class="badge" style="background:#eee; color:#666; margin-left:5px;">+${jointCount}</span>` : '';
-            
-            const topTagName = sortedTagArray[0].name;
-            topTagEl.innerHTML = `${topTagName} <span class="badge">Top 1</span> ${plusBadge}`;
-            topTagEl.style.cursor = "pointer";
-            topTagEl.onclick = () => { window.location.href = `../bookmark/bookmark.html?tag=${encodeURIComponent(topTagName)}`; };
-            
-            topTagDescEl.textContent = "현재 가장 많이 사용 중인 태그";
-        } else {
-            topTagEl.innerHTML = `없음 <span class="badge" style="background:#eee; color:#999;">-</span>`;
-            topTagEl.style.cursor = "default";
-            topTagEl.onclick = null;
-            
-            topTagDescEl.textContent = "태그를 사용하여 분류해보세요";
-        }
-    }
-    
-    const weeklyRateEl = document.querySelector('.stat-card:nth-child(4) .stat-value');
-    const weeklyDescEl = document.querySelector('.stat-card:nth-child(4) .stat-desc');
-    if (weeklyRateEl) {
-        const totalItems = bookmarks.length;
-        if (totalItems === 0) {
-            weeklyRateEl.innerHTML = `0 <span class="unit">%</span>`;
-            if (weeklyDescEl) weeklyDescEl.textContent = "읽기 습관을 시작해보세요";
-        } else {
-            const readItems = bookmarks.filter(item => item.isRead).length;
-            const rate = Math.round((readItems / totalItems) * 100);
-            weeklyRateEl.innerHTML = `${rate} <span class="unit">%</span>`;
-            if (weeklyDescEl) {
-                if (rate === 0) weeklyDescEl.textContent = "아직 읽은 글이 없어요";
-                else if (rate === 100) weeklyDescEl.textContent = "모든 글을 읽었습니다! 완벽해요";
-                else weeklyDescEl.textContent = "차근차근 읽어가는 중이에요";
-            }
-        }
-    }
     renderSidebarTags(sortedTagArray);
 }
 
@@ -347,14 +235,9 @@ function updateDashboardStats() {
 function setReminderDate(date) {
     const hiddenDateInput = document.getElementById('newReminderDate');
     const dateDisplay = document.getElementById('dateDisplay');
-    const isoStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    const isoStr = date.toISOString().slice(0, 16);
     hiddenDateInput.value = isoStr;
     dateDisplay.textContent = `${date.getMonth() + 1}월 ${date.getDate()}일 ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
-}
-
-function setActiveQuickBtn(activeBtn) {
-    document.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
-    activeBtn.classList.add('active');
 }
 
 // =============================
@@ -366,185 +249,60 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSidebarReminders();
     updateDashboardStats();
 
-    // 실시간 검색 기능
-    const searchInput = document.querySelector('.search-container input');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.trim();
-            if (query === "") {
-                const currentData = getDashboardData();
-                currentData.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-                renderCards(currentData.slice(0, 6));
-            } else {
-                handleSearch(query);
-            }
-        });
-        
-        searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const query = e.target.value.trim();
-                if (query) {
-                    window.location.href = `../bookmark/bookmark.html?q=${encodeURIComponent(query)}`;
-                }
-            }
-        });
-    }
-
+    const saveNewBtn = document.getElementById('saveNewBookmarkBtn');
     const addModal = document.getElementById('addBookmarkModal');
     const newTagInput = document.getElementById('newTagInput');
-    const tagSelectionContainer = document.getElementById('tagSelectionContainer');
-    const saveNewBtn = document.getElementById('saveNewBookmarkBtn');
-    const reminderToggle = document.getElementById('newReminderToggle');
-    const reminderOptions = document.getElementById('newReminderOptions');
-    const hiddenDateInput = document.getElementById('newReminderDate');
-    const dateDisplay = document.getElementById('dateDisplay');
 
-    function loadTagsAsChips() {
-        if (!tagSelectionContainer) return;
-        const tags = getTagList();
-        tagSelectionContainer.innerHTML = '';
-        tags.forEach(tag => {
-            const chip = document.createElement('div');
-            chip.className = 'choice-tag';
-            chip.textContent = `#${tag.name}`;
-            chip.style.backgroundColor = tag.color;
-            chip.onclick = () => {
-                const isSelected = chip.classList.contains('selected');
-                document.querySelectorAll('.choice-tag').forEach(c => c.classList.remove('selected'));
-                if (isSelected) { 
-                    if(newTagInput) newTagInput.value = ''; 
-                    chip.classList.remove('selected'); 
-                } else { 
-                    if(newTagInput) newTagInput.value = tag.name.toUpperCase(); 
-                    chip.classList.add('selected'); 
-                }
-            };
-            tagSelectionContainer.appendChild(chip);
-        });
-    }
-
-    document.getElementById('openAddModalBtn')?.addEventListener('click', () => {
-        document.getElementById('newUrl').value = '';
-        document.getElementById('newTitle').value = '';
-        document.getElementById('newContent').value = '';
-        document.getElementById('newMemo').value = '';
-        newTagInput.value = '';
-        reminderToggle.checked = false;
-        reminderOptions.style.display = 'none';
-        hiddenDateInput.value = '';
-        dateDisplay.textContent = '직접 날짜 / 시간 선택하기';
-        document.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
-        loadTagsAsChips();
-        addModal.style.display = 'flex';
-    });
-
-    document.querySelector('.close-modal')?.addEventListener('click', () => { 
-        addModal.style.display = 'none'; 
-    });
-
-    reminderToggle?.addEventListener('change', (e) => { 
-        reminderOptions.style.display = e.target.checked ? 'block' : 'none'; 
-    });
-
-    document.getElementById('btnTomorrow')?.addEventListener('click', (e) => {
-        const d = new Date(SYSTEM_NOW); 
-        d.setDate(d.getDate() + 1); 
-        d.setHours(9, 0, 0, 0);
-        setReminderDate(d); 
-        setActiveQuickBtn(e.currentTarget);
-    });
-
-    document.getElementById('btnWeekend')?.addEventListener('click', (e) => {
-        const d = new Date(SYSTEM_NOW); 
-        d.setDate(d.getDate() + (6 - d.getDay() + 7) % 7 || 7); 
-        d.setHours(10, 0, 0, 0);
-        setReminderDate(d); 
-        setActiveQuickBtn(e.currentTarget);
-    });
-
-    document.getElementById('btnNextWeek')?.addEventListener('click', (e) => {
-        const d = new Date(SYSTEM_NOW); 
-        d.setDate(d.getDate() + ((1 - d.getDay() + 7) % 7) + 7); 
-        d.setHours(9, 0, 0, 0);
-        setReminderDate(d); 
-        setActiveQuickBtn(e.currentTarget);
-    });
-
-    document.getElementById('calendarTrigger')?.addEventListener('click', () => {
-        hiddenDateInput.showPicker();
-    });
-    
-    hiddenDateInput?.addEventListener('change', (e) => {
-        const d = new Date(e.target.value);
-        dateDisplay.textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-        document.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
-    });
-
-    // ===== [중요] 북마크 저장 버튼 =====
+    // URL 자동 보정 로직 포함된 저장 버튼
     if (saveNewBtn) {
         saveNewBtn.addEventListener('click', () => {
             const title = document.getElementById('newTitle').value.trim();
-            if (!title) { 
-                alert('제목을 입력해주세요.'); 
+            let url = document.getElementById('newUrl').value.trim();
+
+            if (!title || !url) { 
+                alert('제목과 URL을 모두 입력해주세요.'); 
                 return; 
             }
-            
-            // ===== URL 가져오기 =====
-            const url = document.getElementById('newUrl').value.trim();
-            console.log('💾 저장할 URL:', url);
-            
+
+            // URL 보정 로직
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+
             const tagName = newTagInput.value.trim().toUpperCase() || 'ETC';
             const existingTags = getTagList();
             let tagColor = '#555';
-            let tagDotColor = '#888888'; 
             let tagObj = existingTags.find(t => t.name === tagName);
             
             if (!tagObj && tagName !== 'ETC') {
                 const colorPalette = [
                     { bg: "#FF02024D", dot: "#FF0202" }, 
-                    { bg: "#FF77004D", dot: "#FF7700" },
-                    { bg: "#FFE5004D", dot: "#FFE500" }, 
-                    { bg: "#0E9E294D", dot: "#0E9E29" },
-                    { bg: "#3D98FA4D", dot: "#3D98FA" }, 
-                    { bg: "#E250CF4D", dot: "#E250CF" },
-                    { bg: "#8888884D", dot: "#888888" }
+                    { bg: "#3D98FA4D", dot: "#3D98FA" }
                 ];
-                const randChoice = colorPalette[Math.floor(Math.random() * colorPalette.length)];
-                tagColor = randChoice.bg;
-                tagDotColor = randChoice.dot;
-                
-                tagObj = { 
-                    id: Date.now(), 
-                    name: tagName, 
-                    color: tagColor, 
-                    dotColor: tagDotColor 
-                };
+                const rand = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+                tagObj = { id: Date.now(), name: tagName, color: rand.bg, dotColor: rand.dot };
                 existingTags.push(tagObj);
                 saveTagList(existingTags);
-            } else if (tagObj) { 
-                tagColor = tagObj.color; 
+                tagColor = rand.bg;
+            } else {
+                tagColor = tagObj ? tagObj.color : '#555';
             }
 
-            // ===== 새 북마크 객체 생성 (URL 포함) =====
+            const now = getNow();
             const newBookmark = {
                 id: Date.now(), 
                 title, 
                 tag: tagName, 
                 tagColor,
-                url: url, // ← URL 저장
-                date: `${SYSTEM_NOW.getFullYear()}.${String(SYSTEM_NOW.getMonth() + 1).padStart(2, '0')}.${String(SYSTEM_NOW.getDate()).padStart(2, '0')}`,
+                url: url,
+                date: `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`,
                 bgColor: '#f0f2f5', 
                 isStarred: false, 
                 isRead: false,
-                hasSummary: false,
                 content: document.getElementById('newContent').value,
                 memo: document.getElementById('newMemo').value,
-                reminderTime: reminderToggle.checked && hiddenDateInput.value 
-                    ? new Date(hiddenDateInput.value).toISOString() 
-                    : null
+                reminderTime: document.getElementById('newReminderToggle').checked ? new Date(document.getElementById('newReminderDate').value).toISOString() : null
             };
-
-            console.log('✅ 저장되는 북마크:', newBookmark);
 
             const data = getDashboardData(); 
             data.unshift(newBookmark); 
@@ -555,4 +313,10 @@ document.addEventListener('DOMContentLoaded', () => {
             addModal.style.display = 'none';
         });
     }
+
+    // 리마인드 퀵 버튼 (오늘 날짜 기준)
+    document.getElementById('btnTomorrow')?.addEventListener('click', () => {
+        const d = getNow(); d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0);
+        setReminderDate(d);
+    });
 });

@@ -81,5 +81,24 @@
     </div>
 
     <script src="script.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            // 페이지 로드 시 저장된 이름이 있는지 확인만 함 (강제 이동 X)
+            const savedName = localStorage.getItem("userName");
+            const usernameElement = document.querySelector(".username");
+    
+            if (savedName && usernameElement) {
+                usernameElement.innerText = savedName;
+                // 로그아웃 버튼 보여주기 등 처리
+            } else if (usernameElement) {
+                usernameElement.innerText = "게스트"; // 로그인 안 했을 때 기본값
+            }
+        });
+    
+        function logout() {
+            localStorage.clear();
+            location.reload(); // 새로고침해서 게스트 상태로 변경
+        }
+    </script>
 </body>
 </html>

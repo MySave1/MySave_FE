@@ -1,63 +1,64 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>로그인 처리 중...</title>
+  <meta charset="UTF-8" />
+  <title>로그인 처리 중...</title>
 </head>
 <body>
-    <h2>로그인 처리 중입니다. 잠시만 기다려주세요...</h2>
-    
-    <script>
-        // [설정] 백엔드 서버 주소 (배포 주소 또는 ngrok 주소)
-        const API_BASE_URL = "http://localhost:8080"; 
+  <h2>로그인 처리 중입니다. 잠시만 기다려주세요...</h2>
 
-        (async () => {
-            // 1. URL에서 code 추출
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get("code");
+  <script>
+    const API_BASE_URL = "http://13.60.25.65:8080";
 
-            if (!code) {
-                alert("잘못된 접근입니다. (인증 코드가 없습니다)");
-                window.location.replace("../index/index.html"); // 메인으로 튕겨내기
-                return;
-            }
+    (async () => {
+      // 1) URL에서 code 추출
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
 
-            try {
-                // 2. 백엔드 API 호출 (코드를 주고 토큰을 받아옴)
-                console.log("백엔드로 인증 코드 전송 중...", code);
-                
-                const response = await fetch(`${API_BASE_URL}/api/auth/kakao/callback?code=${code}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
+      if (!code) {
+        alert("잘못된 접근입니다. (인증 코드가 없습니다)");
+        window.location.replace("../index/index.html");
+        return;
+      }
 
-                if (!response.ok) {
-                    throw new Error(`서버 응답 오류: ${response.status}`);
-                }
+      try {
+        // 2) 백엔드에 code 전달 → 토큰 받기
+        const response = await fetch(
+          `${API_BASE_URL}/api/auth/kakao/callback?code=${encodeURIComponent(code)}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+          }
+        );
 
-                // 3. 백엔드에서 준 JSON 데이터 받기 (여기서 토큰이 넘어옴)
-                const data = await response.json();
-                console.log("로그인 성공! 받은 데이터:", data);
+        if (!response.ok) {
+          throw new Error(`서버 응답 오류: ${response.status}`);
+        }
 
-                // 4. 토큰 저장 (백엔드 DTO 필드명 확인)
-                if (data.accessToken) {
-                    localStorage.setItem("accessToken", data.accessToken);
-                    localStorage.setItem("userName", data.name);
-                    localStorage.setItem("userEmail", data.email);
-                    localStorage.setItem("userId", data.userId); 
+        // 3) 응답 JSON
+        const data = await response.json();
 
-                    alert(`${data.name}님 환영합니다!`);
-                    window.location.replace("../dashboard/dashboard.html");
-                }
+        // 4) 저장 + 이동
+        if (data.accessToken) {
+          localStorage.setItem("accessToken", data.accessToken);
+          localStorage.setItem("userName", data.name);
+          localStorage.setItem("userEmail", data.email);
+          localStorage.setItem("userId", data.userId);
 
-            } catch (error) {
-                console.error("로그인 처리 실패:", error);
-                alert("로그인 처리에 실패했습니다. 관리자에게 문의하세요.");
-                window.location.replace("../index/index.html"); // 실패 시 메인으로
-            }
-        })();
-    </script>
+            alert(`${data.name}님 환영합니다!`);
+        const redirectTo = localStorage.getItem("redirectTo");
+        localStorage.removeItem("redirectTo");
+        window.location.replace(redirectTo || "../dashboard/dashboard.html");
+        } else {
+          alert("로그인 응답에 accessToken이 없습니다.");
+          window.location.replace("../index/index.html");
+        }
+      } catch (error) {
+        console.error("로그인 처리 실패:", error);
+        alert("로그인 처리에 실패했습니다. 관리자에게 문의하세요.");
+        window.location.replace("../index/index.html");
+      }
+    })();
+  </script>
 </body>
 </html>

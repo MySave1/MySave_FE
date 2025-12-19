@@ -479,6 +479,26 @@ body.dark-mode .btn-star {
     color: #facc15;
 }
 
+.quick-btn {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #eee;
+    background: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quick-btn.active {
+    background-color: #3182F6;
+    color: #fff;
+    border-color: #3182F6;
+}
+
+.quick-btn:hover:not(.active) {
+    background-color: #f8f9fa;
+}
+
 /* ================= 반응형 ================= */
 @media (max-width: 768px) {
     .grid-layout {

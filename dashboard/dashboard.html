@@ -187,5 +187,23 @@
     </main>
 
     <script src="dashboard.js"></script>
+    <script>
+        window.addEventListener("load", function () {
+          const savedName = localStorage.getItem("userName");
+          const usernameElement = document.querySelector(".username");
+          if (usernameElement) usernameElement.innerText = savedName || "게스트";
+        });
+      
+        function logout() {
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("userId");
+          localStorage.removeItem("userName");
+          localStorage.removeItem("userEmail");
+          localStorage.removeItem("tempNick");
+          localStorage.removeItem("tempMail");
+          localStorage.removeItem("redirectTo");
+          location.href = "../index/index.html";
+        }
+      </script>
 </body>
 </html>
