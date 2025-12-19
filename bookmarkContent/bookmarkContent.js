@@ -79,6 +79,7 @@ function renderDetail(data) {
     const tagEl = document.getElementById('detailTag');
     tagEl.textContent = data.tag ? `#${data.tag}` : "#태그없음";
     tagEl.style.backgroundColor = data.tagColor || '#555';
+    tagEl.style.cursor = 'pointer';
     document.getElementById('detailDate').textContent = data.date || "";
     const imgArea = document.getElementById('detailImageArea');
     if (data.image) {
@@ -106,6 +107,8 @@ function setupEventListeners(currentData, allBookmarks) {
             window.location.href = '../bookmark/bookmark.html';
         }
     };
+    document.getElementById('detailTag').onclick = () => enableInlineTagEdit(currentData, allBookmarks);
+    document.getElementById('mainEditBtn').onclick = () => toggleMainContentEdit(currentData, allBookmarks);
     document.getElementById('mainEditBtn').onclick = () => toggleMainContentEdit(currentData, allBookmarks);
     document.getElementById('detailStarBtn').onclick = function() {
         currentData.isStarred = !currentData.isStarred;
@@ -133,6 +136,48 @@ function setupEventListeners(currentData, allBookmarks) {
     };
 }
 
+function enableInlineTagEdit(currentData, allBookmarks) {
+    const tagEl = document.getElementById('detailTag');
+    if (document.getElementById('editTagSelect')) return;
+
+    const storedTags = JSON.parse(localStorage.getItem('myTagList')) || [];
+    
+    tagEl.style.display = 'none';
+
+    const select = document.createElement('select');
+    select.id = 'editTagSelect';
+    select.style.cssText = "padding: 5px 10px; border-radius: 10px; border: 1px solid #3182F6; font-family: inherit;";
+
+    storedTags.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.name;
+        opt.textContent = t.name;
+        if (t.name === currentData.tag) opt.selected = true;
+        select.appendChild(opt);
+    });
+
+    tagEl.parentNode.insertBefore(select, tagEl.nextSibling);
+    select.focus();
+
+    select.onchange = () => {
+        const selectedTagName = select.value;
+        const tagInfo = storedTags.find(t => t.name === selectedTagName);
+
+        if (tagInfo) {
+            currentData.tag = tagInfo.name;
+            currentData.tagColor = tagInfo.color || tagInfo.bg;
+            localStorage.setItem('bookmarks', JSON.stringify(allBookmarks));
+            location.reload(); 
+        }
+    };
+    select.onblur = () => {
+        setTimeout(() => {
+            if (select.parentNode) select.remove();
+            tagEl.style.display = 'inline-block';
+        }, 200);
+    };
+}
+
 function renderReminderUI(data) {
     const displayEl = document.getElementById('reminderDisplay');
     const delBtn = document.getElementById('deleteReminderBtn');
@@ -141,7 +186,7 @@ function renderReminderUI(data) {
         const dateObj = new Date(data.reminderTime);
         const dateStr = dateObj.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
         const timeStr = dateObj.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-        displayEl.innerHTML = `<strong style="color:#3182F6;">${dateStr} ${timeStr}</strong><br>알림 예정 🔔`;
+        displayEl.innerHTML = `<strong style="color:#3182F6;">${dateStr} ${timeStr}</strong><br>에 알림이 있습니다. 🔔`;
         toggleBtn.textContent = "시간 수정";
         delBtn.style.display = "inline-block";
     } else {
