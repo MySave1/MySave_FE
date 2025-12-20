@@ -109,11 +109,34 @@ function updateDashboardStats() {
     const todayStr = toDateStr(now);
 
     // 1. 오늘 저장 건수
-    const todaySavedEl = document.querySelector(".stat-card:nth-child(1) .stat-value");
-    if (todaySavedEl) {
-        const count = bookmarks.filter(b => b.date === todayStr).length;
-        todaySavedEl.innerHTML = `${count} <span class="unit">건</span>`;
+    const todaySavedValueEl = document.querySelector(".stat-card:nth-child(1) .stat-value");
+    const todaySavedDescEl = document.getElementById("todaySavedDesc");
+
+    const todayCount = bookmarks.filter(b => b.date === todayStr).length;
+
+    // 어제 날짜 문자열
+    const y = new Date(now);
+    y.setDate(y.getDate() - 1);
+    const yesterdayStr = toDateStr(y);
+
+    const yesterdayCount = bookmarks.filter(b => b.date === yesterdayStr).length;
+
+    // 숫자(건수) 표시
+    if (todaySavedValueEl) {
+    todaySavedValueEl.innerHTML = `${todayCount} <span class="unit">건</span>`;
     }
+
+    // 비교 문구 표시
+    if (todaySavedDescEl) {
+    if (todayCount > yesterdayCount) {
+        todaySavedDescEl.textContent = `어제보다 많이 저장됨 (+${todayCount - yesterdayCount}건)`;
+    } else if (todayCount === yesterdayCount) {
+        todaySavedDescEl.textContent = "어제와 같이 저장됨";
+    } else {
+        todaySavedDescEl.textContent = `어제보다 적게 저장됨 (-${yesterdayCount - todayCount}건)`;
+    }
+    }
+
 
     // 2. 미완료 리마인드 (전체 및 오늘 마감)
     const totalRemindEl = document.getElementById("totalReminderCount");
