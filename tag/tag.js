@@ -3,6 +3,20 @@
 // ==========================================
 const API_BASE_URL = "http://13.60.25.65:8080";
 const TAG_STORAGE_KEY = 'myTagList'; // 대시보드와 동일한 키 사용
+const BOOKMARK_STORAGE_KEY = "bookmarks";
+
+function getBookmarks() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(BOOKMARK_STORAGE_KEY));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveBookmarks(bookmarks) {
+  localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(bookmarks));
+}
 
 let currentSelectedColor = { bg: "#FF02024D", dot: "#FF0202" };
 
@@ -71,15 +85,28 @@ function addNewTag() {
 }
 
 window.deleteTag = function(tagId) {
-    if(!confirm("정말 이 태그를 삭제하시겠습니까?")) return;
-
     let allTags = getTags();
+    const target = allTags.find(t => t.id === tagId);
+  
+    if (!target) return;
+  
+    const tagName = (target.name || "").toUpperCase();
+    const msg = `'${tagName}' 태그와 해당 태그에 포함한 모든 글이 삭제됩니다. 계속하시겠습니까?`;
+    if (!confirm(msg)) return;
+  
+    // 1) 태그 목록에서 삭제
     allTags = allTags.filter(t => t.id !== tagId);
-    
     saveTagsToDB(allTags);
+  
+    // 2) 북마크에서 해당 태그 가진 글 전부 삭제
+    const bookmarks = getBookmarks();
+    const filteredBookmarks = bookmarks.filter(b => ((b.tag || "ETC").toUpperCase() !== tagName));
+    saveBookmarks(filteredBookmarks);
+  
+    alert(`'${tagName}' 태그와 해당 태그의 북마크가 삭제되었습니다.`);
     renderTags();
-};
-
+  };
+  
 // ==========================================
 // 3. UI 렌더링
 // ==========================================

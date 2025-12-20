@@ -36,6 +36,30 @@ function normalizeUrl(url) {
     return /^https?:\/\//i.test(trimmed) ? trimmed : "https://" + trimmed;
 }
 
+// 태그 색상
+const TAG_PALETTE = [
+    { bg: "#3182F64D", dot: "#3182F6" }, // blue
+    { bg: "#22C55E4D", dot: "#22C55E" }, // green
+    { bg: "#F973164D", dot: "#F97316" }, // orange
+    { bg: "#A855F74D", dot: "#A855F7" }, // purple
+    { bg: "#EF44444D", dot: "#EF4444" }, // red
+    { bg: "#14B8A64D", dot: "#14B8A6" }, // teal
+    { bg: "#EAB3084D", dot: "#EAB308" }, // yellow
+    { bg: "#64748B4D", dot: "#64748B" }, // slate
+  ];
+  
+  function hashString(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) {
+      h = (h * 31 + str.charCodeAt(i)) >>> 0;
+    }
+    return h;
+  }
+    function pickTagColor(tagName) {
+    const idx = hashString((tagName || "").toUpperCase()) % TAG_PALETTE.length;
+    return TAG_PALETTE[idx];
+  }
+
 // =============================
 // 2. 핵심 로직
 // =============================
@@ -86,52 +110,75 @@ function updateDashboardStats() {
     // 2. 미완료 리마인드 (전체 및 오늘 마감)
     const totalRemindEl = document.getElementById("totalReminderCount");
     const todayRemindDesc = document.getElementById("todayReminderDesc");
-    const activeReminders = bookmarks.filter(b => b.reminderTime && !b.isRead);
-    
-    if (totalRemindEl) totalRemindEl.textContent = activeReminders.length;
+    const allReminders = bookmarks.filter(b => !!b.reminderTime);
+    const unreadReminders = allReminders.filter(r => !r.isRead);
+
+    if (totalRemindEl) totalRemindEl.textContent = unreadReminders.length;
+
+    const isSameDay = (a, b) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+    const dueTodayAll = allReminders.filter(r => isSameDay(new Date(r.reminderTime), now)).length;
+
     if (todayRemindDesc) {
-        const dueToday = activeReminders.filter(r => new Date(r.reminderTime).toDateString() === now.toDateString()).length;
-        todayRemindDesc.textContent = `오늘 마감되는 항목 ${dueToday} 건`;
-    }
-
-    const tagCount = {};
-    bookmarks.forEach(b => { 
-        const t = (b.tag || "ETC").toUpperCase(); 
-        tagCount[t] = (tagCount[t] || 0) + 1; 
-    });
-
-    const sortedTags = Object.entries(tagCount)
-        .map(([name, count]) => ({ name, count }))
-        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-    
-    const topTagEl = document.querySelector(".stat-card:nth-child(3) .stat-value");
-    if (topTagEl) {
-        topTagEl.innerHTML = sortedTags.length 
-            ? `${sortedTags[0].name} <span class="badge">Top 1</span>` 
-            : "없음";
+    todayRemindDesc.textContent = `오늘 마감되는 항목 ${dueTodayAll} 건`;
     }
 
     // 사이드바 태그 클라우드 렌더링
     const cloud = document.querySelector(".tag-cloud");
     if (cloud) {
-        cloud.innerHTML = "";
-        const masterTags = getTagList();
+    cloud.innerHTML = "";
+    const masterTags = getTagList();
 
-        sortedTags.slice(0, 5).forEach(tag => {
-            const info = masterTags.find(m => m.name.toUpperCase() === tag.name);
-            
-            const span = document.createElement("span");
-            span.className = "tag-pill";
-            span.textContent = `#${tag.name}`;
-            
-            span.style.backgroundColor = info ? (info.color || info.bg) : "#3182F64D";
-            
-            span.onclick = () => {
-                location.href = `../bookmark/bookmark.html?tag=${encodeURIComponent(tag.name)}`;
-            };
-            cloud.appendChild(span);
-        });
+    const tagCount = {};
+    bookmarks.forEach(b => {
+        const t = (b.tag || "ETC").toUpperCase();
+        tagCount[t] = (tagCount[t] || 0) + 1;
+    });
+
+    const sortedTags = Object.entries(tagCount)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+    const topTagEl = document.querySelector(".stat-card:nth-child(3) .stat-value");
+
+    if (topTagEl) {
+        if (!sortedTags.length) {
+        topTagEl.textContent = "없음";
+        } else {
+        const topCount = sortedTags[0].count;
+
+        const tied = sortedTags.filter(t => t.count === topCount)
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        const mainName = tied[0].name;
+        const extra = tied.length - 1;
+
+        topTagEl.innerHTML =
+            extra > 0
+            ? `${mainName} <span class="badge">+ ${extra}</span>`
+            : `${mainName} <span class="badge">Top 1</span>`;
+        }
     }
+
+    sortedTags.slice(0, 5).forEach(tag => {
+        const info = masterTags.find(m => m.name.toUpperCase() === tag.name);
+
+        const span = document.createElement("span");
+        span.className = "tag-pill";
+        span.textContent = `#${tag.name}`;
+        span.style.backgroundColor = info ? (info.color || info.bg) : "#3182F64D";
+
+        span.onclick = () => {
+        location.href = `../bookmark/bookmark.html?tag=${encodeURIComponent(tag.name)}`;
+        };
+
+        cloud.appendChild(span);
+    });
+    }
+
 
     // 4. 읽기 달성률 (Progress)
     const rateEl = document.querySelector(".stat-card:nth-child(4) .stat-value");
@@ -241,6 +288,70 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // 리마인드 옵션 토글
     reminderToggle.onchange = (e) => reminderOptions.style.display = e.target.checked ? "block" : "none";
+    const btnTomorrow = document.getElementById("btnTomorrow");
+    const btnWeekend = document.getElementById("btnWeekend");
+    const btnNextWeek = document.getElementById("btnNextWeek");
+    const calendarTrigger = document.getElementById("calendarTrigger");
+    const dateDisplay = document.getElementById("dateDisplay");
+    const reminderDateInput = document.getElementById("newReminderDate");
+
+    function pad2(n) { return String(n).padStart(2, "0"); }
+    function toDatetimeLocal(d) {
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+    }
+    function toDisplay(d) {
+    return `${d.getFullYear()}.${pad2(d.getMonth()+1)}.${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+    }
+    function setReminder(d) {
+    if (!reminderDateInput) return;
+    reminderDateInput.value = toDatetimeLocal(d);
+    if (dateDisplay) dateDisplay.textContent = toDisplay(d);
+    }
+
+    // 내일 09:00
+    btnTomorrow?.addEventListener("click", (e) => {
+    e.preventDefault();
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(9, 0, 0, 0);
+    setReminder(d);
+    });
+
+    // 이번 주말(토) 10:00
+    btnWeekend?.addEventListener("click", (e) => {
+    e.preventDefault();
+    const d = new Date();
+    const day = d.getDay(); // 0=일 ... 6=토
+    const daysToSat = (6 - day + 7) % 7;
+    d.setDate(d.getDate() + daysToSat);
+    d.setHours(10, 0, 0, 0);
+    setReminder(d);
+    });
+
+    // 다음주 월요일 09:00
+    btnNextWeek?.addEventListener("click", (e) => {
+    e.preventDefault();
+    const d = new Date();
+    const day = d.getDay();
+    const daysToNextMon = ((1 - day + 7) % 7) + 7;
+    d.setDate(d.getDate() + daysToNextMon);
+    d.setHours(9, 0, 0, 0);
+    setReminder(d);
+    });
+
+    // "직접 날짜 선택" 클릭 -> 숨겨진 datetime-local 열기
+    calendarTrigger?.addEventListener("click", () => {
+    if (!reminderDateInput) return;
+    if (typeof reminderDateInput.showPicker === "function") reminderDateInput.showPicker();
+    else reminderDateInput.click();
+    });
+
+    // 직접 바꿨을 때 표시 갱신
+    reminderDateInput?.addEventListener("change", () => {
+    if (!reminderDateInput.value) return;
+    const d = new Date(reminderDateInput.value);
+    if (dateDisplay) dateDisplay.textContent = toDisplay(d);
+    });
 
     // 저장 버튼 (색상 문제 해결 포함)
     document.getElementById("saveNewBookmarkBtn").onclick = () => {
@@ -249,8 +360,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const tagName = (document.getElementById("newTagInput").value.trim() || "ETC").toUpperCase();
         const masterTags = getTagList();
-        const tagInfo = masterTags.find(t => t.name.toUpperCase() === tagName);
-
+        let tagInfo = masterTags.find(t => t.name.toUpperCase() === tagName);
+        
+        if (!tagInfo) {
+            const myId = localStorage.getItem("userId") || "guest";
+            const picked = pickTagColor(tagName);
+          
+            tagInfo = {
+              id: Date.now(),
+              userId: myId,
+              name: tagName,
+              color: picked.bg,
+              dotColor: picked.dot,
+            };
+          
+            masterTags.push(tagInfo);
+            localStorage.setItem(STORAGE_KEY_TAGS, JSON.stringify(masterTags));
+          }
+          
         const newItem = {
             id: Date.now(),
             title,

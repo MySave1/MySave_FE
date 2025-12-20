@@ -6,6 +6,30 @@
     <title>Bookmark Extension</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="extension.css">
+    <style>
+        .image-preview-box {
+            width: 100%;
+            height: 120px;
+            background-color: #f0f2f5;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-size: cover;
+            background-position: center;
+            display: none;
+            position: relative;
+            border: 1px solid #ddd;
+        }
+        .image-preview-label {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-top-left-radius: 6px;
+        }
+    </style>
 </head>
 <body>
 
@@ -24,6 +48,11 @@
                 <input type="text" id="pageUrl" readonly>
             </div>
         </div>
+
+        <div id="imgPreview" class="image-preview-box">
+            <span class="image-preview-label">대표 이미지</span>
+        </div>
+        <input type="hidden" id="ogImageUrl">
 
         <div class="input-section">
             <label class="field-label">제목</label>
@@ -49,7 +78,7 @@
             <label class="field-label">태그</label>
             <div class="tag-wrapper">
                 <div class="input-box">
-                    <input type="text" id="tagInput" placeholder="태그를 입력해주세요">
+                    <input type="text" id="tagInput" placeholder="태그 입력">
                 </div>
                 <div id="tagContainer" class="tag-container"></div>
             </div>
@@ -93,6 +122,5 @@
     </div>
 
     <script src="extension.js"></script>
-    <script src="extension_theme_loader.js"></script>
 </body>
 </html>

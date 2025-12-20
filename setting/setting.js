@@ -12,9 +12,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   initSearchBar();
   initDataManagement();
 
-  // 2) 계정 관련(로그인 강제 X)
-  await checkLoginStatus(); // 토큰 있으면(진짜토큰이면) 프로필 시도, 아니면 로컬값으로 표시
-  initAccountActions();     // 로그인 시작 / 로그아웃 버튼만 연결
+  // 2) 계정 관련(로그인 상태 체크 및 버튼 연결)
+  await checkLoginStatus(); 
+  initAccountActions();     
 });
 
 // 로그인 없어도 모든 페이지 작동하게: 기본 사용자(게스트) 채워넣기
@@ -34,30 +34,35 @@ function getSetting(key, defaultValue = false) {
 }
 
 /* ---------------------------
-  0. 로그인 상태 표시(강제 X)
+  0. 로그인 상태 표시
 ---------------------------- */
 async function checkLoginStatus() {
   const token = localStorage.getItem("accessToken");
 
-  // 데모 토큰이거나 토큰이 없으면: 서버 조회 안 하고 로컬 표시만
+  // 토큰이 없거나 데모 토큰이면: 로컬 정보(게스트) 표시하고 종료
   if (!token || token.startsWith("demo-")) {
-    setLoggedInStateFromLocal(); // 입력한 닉/메일 그대로 표시
+    setLoggedInStateFromLocal(); 
     return;
   }
 
-  // 진짜 토큰이면 프로필 API 한 번 시도(실패해도 기능은 계속 됨)
+  // 진짜 토큰이면 프로필 API 조회
   await fetchUserProfile(token);
 }
 
+// 로컬 스토리지 정보로 UI 세팅 (비로그인/게스트 상태)
 function setLoggedInStateFromLocal() {
   const user = {
     nickname: localStorage.getItem("userName"),
     email: localStorage.getItem("userEmail"),
     profileImageUrl: null
   };
-  setLoggedInState(user);
+  // 게스트 상태에서는 카카오 연동 배지를 숨기고 로그인 버튼을 활성화
+  // 여기서 false를 넘겨서 비로그인 상태임을 알림
+  const hasToken = localStorage.getItem("accessToken") && !localStorage.getItem("accessToken").startsWith("demo-");
+  updateProfileUI(user, hasToken);
 }
 
+// 서버에서 프로필 정보 가져오기
 async function fetchUserProfile(token) {
   try {
     const response = await fetch(`${API_BASE_URL}/api/users/me`, {
@@ -68,53 +73,76 @@ async function fetchUserProfile(token) {
       }
     });
 
-    // 실패해도 로그아웃으로 쫓아내지 말고(요구사항), 로컬값 표시로 대체
     if (!response.ok) {
-      console.warn("프로필 조회 실패. (로그인 강제 안 함) => 로컬 사용자로 표시");
+      console.warn("프로필 조회 실패. 로컬 사용자로 표시");
       setLoggedInStateFromLocal();
       return;
     }
 
     const userData = await response.json();
-    setLoggedInState(userData);
+    
+    // 서버 데이터 포맷에 맞춰 매핑
+    const user = {
+        nickname: userData.name || userData.nickname,
+        email: userData.email,
+        profileImageUrl: userData.profileImageUrl 
+    };
+
+    // 로그인 성공 상태로 UI 업데이트
+    updateProfileUI(user, true);
+
   } catch (error) {
-    console.warn("서버 연결 실패. 로컬 사용자로 표시:", error);
+    console.warn("서버 연결 실패:", error);
     setLoggedInStateFromLocal();
   }
 }
 
-// 로그인 성공 시 화면 (UI 업데이트)
-function setLoggedInState(user) {
+// UI 업데이트 함수 (로그인 여부에 따라 분기)
+function updateProfileUI(user, isLoggedIn) {
   const nicknameEl = document.getElementById("userNickname");
   const emailEl = document.getElementById("userEmail");
-
-  if (nicknameEl) nicknameEl.textContent = user.nickname || localStorage.getItem("userName") || "게스트";
-  if (emailEl) emailEl.textContent = user.email || localStorage.getItem("userEmail") || "guest@mysave.local";
-
   const imgDiv = document.getElementById("userProfileImg");
-  if (imgDiv && user.profileImageUrl) {
-    imgDiv.style.backgroundImage = `url(${user.profileImageUrl})`;
-    imgDiv.style.backgroundSize = "cover";
+  const defaultIcon = document.getElementById("defaultProfileIcon");
+  
+  // 1. 텍스트 정보 업데이트
+  if (nicknameEl) nicknameEl.textContent = user.nickname || "게스트";
+  if (emailEl) emailEl.textContent = user.email || "guest@mysave.local";
+
+  // 2. 프로필 이미지 처리
+  if (imgDiv) {
+      if (user.profileImageUrl) {
+        imgDiv.style.backgroundImage = `url(${user.profileImageUrl})`;
+        imgDiv.style.backgroundSize = "cover";
+        if(defaultIcon) defaultIcon.style.display = "none";
+      } else {
+        imgDiv.style.backgroundImage = "none";
+        if(defaultIcon) defaultIcon.style.display = "none"; // 기본 아이콘 보이기
+      }
   }
 
+  // 3. 버튼 및 배지 상태 처리
   const badge = document.getElementById("connectionStatus");
   const logoutLink = document.getElementById("logoutLink");
   const kakaoBtn = document.getElementById("kakaoAuthBtn");
 
-  if (badge) badge.style.display = "inline-flex";
-  if (logoutLink) logoutLink.style.display = "inline-flex";
-
-  if (kakaoBtn) {
-    // 로그인 강제 제거
-    kakaoBtn.innerHTML = '<i class="fa-solid fa-pen"></i> 닉네임/이메일 설정';
-    kakaoBtn.disabled = false;
-    kakaoBtn.style.opacity = "1";
-    kakaoBtn.style.cursor = "pointer";
+  if (isLoggedIn) {
+      // 로그인 상태: "연동됨" 배지 보임, 로그아웃 버튼 보임, 로그인 버튼 숨김
+      if (badge) badge.style.display = "inline-flex";
+      if (logoutLink) logoutLink.style.display = "inline-flex";
+      if (kakaoBtn) kakaoBtn.style.display = "none";
+  } else {
+      // 비로그인(게스트) 상태: 배지 숨김, 로그아웃 숨김, 로그인 버튼 보임
+      if (badge) badge.style.display = "none";
+      if (logoutLink) logoutLink.style.display = "none";
+      if (kakaoBtn) {
+          kakaoBtn.style.display = "block";
+          kakaoBtn.innerHTML = '<i class="fa-solid fa-comment"></i> Kakao 로그인 연결';
+      }
   }
 }
 
 /* ---------------------------
-  1~6. 기타 UI 기능들
+  1~6. 기타 UI 기능들 (기존 유지)
 ---------------------------- */
 function initDarkMode() {
   const toggle = document.getElementById("darkModeToggle");
@@ -126,16 +154,8 @@ function initDarkMode() {
     const isDark = toggle.checked;
     document.body.classList.toggle("dark-mode", isDark);
     setSetting("darkMode", isDark);
-    localStorage.setItem("darkModeChange", Date.now().toString());
   });
 }
-window.addEventListener("storage", (e) => {
-  if (e.key === "darkMode") {
-    document.body.classList.toggle("dark-mode", e.newValue === "true");
-    const toggle = document.getElementById("darkModeToggle");
-    if (toggle) toggle.checked = (e.newValue === "true");
-  }
-});
 
 function initAiToggle() {
   const toggle = document.getElementById("aiToggle");
@@ -150,13 +170,15 @@ function initNotificationToggle() {
   toggle.checked = getSetting("notification", true);
   toggle.addEventListener("change", async () => {
     if (toggle.checked) {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        alert("알림 권한이 필요합니다.");
-        toggle.checked = false;
-        setSetting("notification", false);
-        return;
-      }
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission !== "granted") {
+                alert("알림 권한이 필요합니다.");
+                toggle.checked = false;
+                setSetting("notification", false);
+                return;
+            }
+        } catch(e) { console.log("알림 권한 요청 불가"); }
     }
     setSetting("notification", toggle.checked);
   });
@@ -185,14 +207,11 @@ function initDataManagement() {
   const deleteAllBtn = deleteLinks[deleteLinks.length - 1];
   deleteAllBtn.addEventListener("click", (e) => {
     e.preventDefault();
-    if (!confirm("정말 모든 데이터를 삭제하시겠습니까?")) return;
-    if (prompt("삭제하려면 '삭제합니다'라고 입력하세요.") === "삭제합니다") {
-      localStorage.clear();
-      alert("데이터 삭제 완료! 초기화면으로 이동합니다.");
-      window.location.href = "../index/index.html";
-    } else {
-      alert("삭제가 취소되었습니다.");
-    }
+    if (!confirm("정말 모든 데이터를 삭제하시겠습니까? (로컬 데이터만 삭제됩니다)")) return;
+    
+    localStorage.clear();
+    alert("데이터 삭제 완료! 초기화면으로 이동합니다.");
+    window.location.href = "../index/index.html";
   });
 }
 
@@ -203,14 +222,14 @@ function initAccountActions() {
   const kakaoBtn = document.getElementById("kakaoAuthBtn");
   const logoutBtn = document.getElementById("logoutLink");
 
+  // 로그인 버튼 클릭 -> 로그인 페이지로 이동
   if (kakaoBtn) {
     kakaoBtn.addEventListener("click", () => {
-      // 로그인 강제 X: 그냥 닉네임/이메일 설정 페이지로 보내기
-      localStorage.setItem("redirectTo", window.location.href);
-      window.location.href = "../login.html";
+      window.location.href = "../login/login.html";
     });
   }
 
+  // 로그아웃 버튼 클릭
   if (logoutBtn) {
     logoutBtn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -219,17 +238,20 @@ function initAccountActions() {
   }
 }
 
-// 로그아웃해도 북마크/태그 데이터는 남기고 “사용자정보만” 지움
+// 로그아웃 처리
 function handleLogout(askConfirm = true) {
   if (askConfirm && !confirm("로그아웃 하시겠습니까?")) return;
 
+  // 토큰 및 사용자 정보 삭제
   localStorage.removeItem("accessToken");
   localStorage.removeItem("userId");
   localStorage.removeItem("userName");
   localStorage.removeItem("userEmail");
+  localStorage.removeItem("notificationEmail"); 
 
-  // 다시 게스트로 채워서 계속 사용 가능하게
+  // 다시 게스트 정보 생성
   ensureGuestUser();
-  alert("로그아웃 완료");
-  window.location.reload();
+  
+  alert("로그아웃 되었습니다.");
+  window.location.reload(); 
 }

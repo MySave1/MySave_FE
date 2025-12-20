@@ -635,6 +635,45 @@ input:checked + .slider:before { transform: translateX(16px); }
 .reminder-icon { color: #3182F6; }
 .delete-icon { color: #ff5252; }
 
+/* 팔레트 컨테이너 */
+.palette {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+/* 개별 색상 원 */
+.color-circle {
+    width: 28px; 
+    height: 28px; 
+    border-radius: 50%; 
+    cursor: pointer;
+    border: 2px solid transparent; 
+    transition: all 0.2s;
+    position: relative;
+}
+
+/* 마우스 올렸을 때 살짝 커짐 */
+.color-circle:hover {
+    transform: scale(1.1);
+}
+
+/* 선택되었을 때 강조 효과 */
+.color-circle.selected {
+    transform: scale(1.15);
+    border-color: #555; /* 진한 회색 테두리로 선택됨 표시 */
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+}
+
+/* 모달 내 색상 선택 영역 라벨 */
+.color-selection-area .field-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+    display: block;
+}
+
 
 /* 9. 반응형 미디어 쿼리 */
 @media (max-width: 992px) {

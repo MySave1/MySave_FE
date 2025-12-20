@@ -31,7 +31,9 @@
             <div class="profile-content">
                 <div class="profile-image-container">
                     <div class="dashed-border">
-                        <div class="profile-img" id="userProfileImg"></div> 
+                        <div class="profile-img" id="userProfileImg">
+                            <i class="fa-solid fa-user" style="font-size: 2rem; color: #ccc; display: none;" id="defaultProfileIcon"></i>
+                        </div> 
                     </div>
                     <button class="edit-icon-btn" id="editProfileBtn"><i class="fa-solid fa-pen"></i></button>
                 </div>
@@ -49,7 +51,7 @@
                             <i class="fa-solid fa-comment"></i> Kakao 연동됨
                         </span>
                     </div>
-                    </div>
+                </div>
             </div>
         </section>
         
@@ -59,7 +61,7 @@
             </div>
             <div class="account-content">
                 <button class="kakao-btn-full" id="kakaoAuthBtn">
-                    <i class="fa-solid fa-comment"></i> Kakao 로그인 연결
+                    <i class="fa-solid fa-comment"></i> 로그인 페이지로 이동
                 </button>
                 
                 <a href="#" class="logout-link" id="logoutLink" style="display: none;">

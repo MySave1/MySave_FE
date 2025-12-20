@@ -1,276 +1,282 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
-    // 1. 기본 설정 및 변수 선언
-    const API_BASE_URL = "http://13.60.25.65:8080";
-    const tagInput = document.getElementById('tagInput');
-    const tagContainer = document.getElementById('tagContainer');
-    let tags = [];
-  
-    const toggleBtn = document.getElementById('reminderToggle');
-    const reminderOptions = document.getElementById('reminderOptions');
-    const dateInput = document.getElementById('reminderDate');
-    const calendarTrigger = document.getElementById('calendarTrigger');
-    const dateDisplay = document.getElementById('dateDisplay');
-    const quickBtns = document.querySelectorAll('.quick-btn');
-  
-    const statusMsg = document.getElementById('statusMsg');
-  
-    // 유틸: 상태 메시지
-    function setStatus(text, color = "#555") {
+  // 1. 기본 설정
+  const API_BASE_URL = "http://13.60.25.65:8080";
+  const statusMsg = document.getElementById('statusMsg');
+
+  // 태그 관련
+  const tagInput = document.getElementById('tagInput');
+  const tagContainer = document.getElementById('tagContainer');
+  let tags = []; 
+
+  // 리마인드, 이미지 관련 변수
+  const toggleBtn = document.getElementById('reminderToggle');
+  const reminderOptions = document.getElementById('reminderOptions');
+  const dateInput = document.getElementById('reminderDate');
+  const calendarTrigger = document.getElementById('calendarTrigger');
+  const dateDisplay = document.getElementById('dateDisplay');
+  const quickBtns = document.querySelectorAll('.quick-btn');
+  const imgPreview = document.getElementById('imgPreview');
+  const ogImageUrlInput = document.getElementById('ogImageUrl');
+
+  function setStatus(text, color = "#555") {
       if (!statusMsg) return;
       statusMsg.innerText = text;
       statusMsg.style.color = color;
-    }
-  
-    // 유틸: 로컬 저장 (확장프로그램 스토리지)
-    function saveToLocalBookmark(item) {
-      return new Promise((resolve) => {
-        chrome.storage.local.get(['localBookmarks'], (res) => {
-          const prev = Array.isArray(res.localBookmarks) ? res.localBookmarks : [];
-          prev.unshift(item);
-          chrome.storage.local.set({ localBookmarks: prev }, () => resolve(true));
-        });
-      });
-    }
-  
-    // 유틸: 로컬에서 “임시 유저” 만들어두기 (로그인 없이도 구분 가능)
-    function ensureLocalUser() {
-      return new Promise((resolve) => {
-        chrome.storage.local.get(['userId', 'userName', 'userEmail'], (res) => {
-          const userId = res.userId || "guest";
-          const userName = res.userName || "게스트";
-          const userEmail = res.userEmail || "guest@mysave.local";
-          chrome.storage.local.set({ userId, userName, userEmail }, () => resolve({ userId, userName, userEmail }));
-        });
-      });
-    }
-  
-    // 페이지 정보 채우기
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  }
+
+  // 2. 초기화: 토큰 및 로컬 태그 불러오기
+  const storageData = await chrome.storage.local.get(['accessToken', 'localTags']);
+  const token = storageData.accessToken;
+  let knownTags = storageData.localTags || [];
+
+  // 3. 페이지 정보 가져오기 (이미지 포함)
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const currentTab = tabs[0];
-  
-      // 크롬 내부 페이지 예외 처리
-      if (currentTab.url.startsWith('chrome://') || currentTab.url.startsWith('chrome-extension://')) {
-        document.getElementById('pageTitle').value = currentTab.title || '내부 페이지';
-        document.getElementById('pageUrl').value = currentTab.url;
-        document.getElementById('selectedText').value = '선택된 텍스트 없음 (내부 페이지)';
-        return;
+      if (currentTab.url.startsWith('chrome://') || currentTab.url.startsWith('edge://')) {
+           document.getElementById('pageTitle').value = currentTab.title || '내부 페이지';
+           document.getElementById('pageUrl').value = currentTab.url;
+           return;
       }
-  
+
       document.getElementById('pageTitle').value = currentTab.title;
       document.getElementById('pageUrl').value = currentTab.url;
-  
+
+      // 페이지 내 스크립트 실행 (텍스트, 이미지 추출)
       chrome.scripting.executeScript({
-        target: { tabId: currentTab.id },
-        func: () => window.getSelection().toString()
+          target: { tabId: currentTab.id },
+          func: getPageMetaInfo
       }, (results) => {
-        if (results && results[0] && results[0].result) {
-          document.getElementById('selectedText').value = results[0].result;
-        }
+          if (results && results[0]?.result) {
+              const data = results[0].result;
+              if (data.selection) document.getElementById('selectedText').value = data.selection;
+              
+              // 이미지 처리
+              if (data.ogImage) {
+                  ogImageUrlInput.value = data.ogImage;
+                  imgPreview.style.display = 'block';
+                  imgPreview.style.backgroundImage = `url('${data.ogImage}')`;
+              }
+          }
       });
-    });
-  
-    // 2. 태그 입력
-    tagInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-  
-        let newTag = tagInput.value.trim().toUpperCase();
-        if (newTag.length > 0) {
-          const newTagsArray = newTag.split(',')
-            .map(tag => tag.trim().replace(/^#/, ''))
-            .filter(tag => tag.length > 0 && !tags.includes(tag));
-  
-          tags.push(...newTagsArray);
-        }
-  
-        tagInput.value = '';
-        renderTags();
+  });
+
+  // Content Script 함수 (웹페이지 내부에서 실행됨)
+  function getPageMetaInfo() {
+      const selection = window.getSelection().toString();
+      
+      // OG 이미지 찾기
+      const metaImg = document.querySelector('meta[property="og:image"]');
+      let ogImage = metaImg ? metaImg.content : "";
+      
+      // 없으면 img 태그 중 큰 것 찾기
+      if (!ogImage) {
+          const imgs = document.querySelectorAll('img');
+          for(let img of imgs) {
+              if(img.width > 200 && img.height > 100) {
+                  ogImage = img.src;
+                  break;
+              }
+          }
       }
-    });
+      return { selection, ogImage };
+  }
+
+  // 4. 태그 기능
+  // 엔터키 입력 처리
+  tagInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+          e.preventDefault();
+          addTagFromInput();
+      }
+  });
   
-    function renderTags() {
+  tagInput.addEventListener('blur', () => {
+      addTagFromInput();
+  });
+
+  function addTagFromInput() {
+      let val = tagInput.value.trim().toUpperCase();
+      if (val) {
+          const newTags = val.split(',').map(t => t.trim()).filter(t => t && !tags.includes(t));
+          tags.push(...newTags);
+          tagInput.value = '';
+          renderTags();
+      }
+  }
+
+  function renderTags() {
       tagContainer.innerHTML = '';
       tags.forEach((tag, idx) => {
-        const chip = document.createElement('div');
-        chip.className = 'tag-chip';
-        chip.innerHTML = `#${tag} <i class="fa-solid fa-xmark" data-idx="${idx}"></i>`;
-        tagContainer.appendChild(chip);
+          const chip = document.createElement('div');
+          chip.className = 'tag-chip';
+          chip.innerHTML = `#${tag} <i class="fa-solid fa-xmark"></i>`;
+          chip.querySelector('i').addEventListener('click', () => {
+              tags.splice(idx, 1);
+              renderTags();
+          });
+          tagContainer.appendChild(chip);
       });
-  
-      document.querySelectorAll('.tag-chip i').forEach(icon => {
-        icon.addEventListener('click', (e) => {
-          const indexToRemove = parseInt(e.target.dataset.idx);
-          tags.splice(indexToRemove, 1);
-          renderTags();
-        });
-      });
-    }
-  
-    // 3. 리마인드
-    function updateDateDisplay(dateStr) {
+  }
+
+  // 5. 리마인드 기능 (기존 로직 유지)
+  function updateDateDisplay(dateStr) {
       if (!dateStr) {
-        dateDisplay.innerText = "직접 날짜 / 시간 선택하기";
-        calendarTrigger.style.borderColor = "";
-        calendarTrigger.style.backgroundColor = "";
-        return;
+          dateDisplay.innerText = "직접 날짜 / 시간 선택하기";
+          calendarTrigger.style.borderColor = "#ddd";
+          calendarTrigger.style.backgroundColor = "transparent";
+          return;
       }
-      const dateObj = new Date(dateStr);
-      const month = dateObj.getMonth() + 1;
-      const day = dateObj.getDate();
-      const hour = dateObj.getHours().toString().padStart(2, '0');
-      const min = dateObj.getMinutes().toString().padStart(2, '0');
+      const d = new Date(dateStr);
+      const month = d.getMonth() + 1;
+      const day = d.getDate();
+      const hour = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      
       dateDisplay.innerText = `${month}월 ${day}일 ${hour}:${min}`;
-  
-      calendarTrigger.style.borderColor = "rgba(52, 84, 130, 1)";
-      calendarTrigger.style.backgroundColor = "rgba(52, 82, 130, 0.11)";
-    }
-  
-    toggleBtn.addEventListener('change', (e) => {
-      if (e.target.checked) {
-        reminderOptions.style.display = 'block';
-      } else {
-        reminderOptions.style.display = 'none';
-        dateInput.value = '';
-        quickBtns.forEach(btn => btn.classList.remove('active'));
-        updateDateDisplay(null);
+      calendarTrigger.style.borderColor = "#3182F6";
+      calendarTrigger.style.backgroundColor = "rgba(49, 130, 246, 0.1)";
+  }
+
+  toggleBtn.addEventListener('change', (e) => {
+      reminderOptions.style.display = e.target.checked ? 'block' : 'none';
+      if (!e.target.checked) {
+          dateInput.value = '';
+          quickBtns.forEach(b => b.classList.remove('active'));
+          updateDateDisplay(null);
       }
-    });
+  });
+
+  calendarTrigger.addEventListener('click', () => { try { dateInput.showPicker(); } catch { dateInput.focus(); } });
+  dateInput.addEventListener('change', () => { 
+      quickBtns.forEach(b => b.classList.remove('active')); 
+      updateDateDisplay(dateInput.value); 
+  });
   
-    calendarTrigger.addEventListener('click', () => {
-      try { dateInput.showPicker(); } catch (err) { dateInput.focus(); dateInput.click(); }
-    });
-  
-    dateInput.addEventListener('change', () => {
-      quickBtns.forEach(b => b.classList.remove('active'));
-      updateDateDisplay(dateInput.value);
-    });
-  
-    function formatDateTime(date) {
-      const offset = date.getTimezoneOffset() * 60000;
-      return (new Date(date - offset)).toISOString().slice(0, 16);
-    }
-  
-    function setQuickDate(daysToAdd, hour) {
+  function setQuickDate(daysToAdd, setHour) {
       const d = new Date();
       d.setDate(d.getDate() + daysToAdd);
-      d.setHours(hour, 0, 0, 0);
-      return d;
-    }
+      d.setHours(setHour, 0, 0, 0);
+      const offset = d.getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(d - offset)).toISOString().slice(0, 16);
+      dateInput.value = localISOTime;
+      updateDateDisplay(localISOTime);
+      if (!toggleBtn.checked) { toggleBtn.checked = true; reminderOptions.style.display = 'block'; }
+  }
   
-    function applyQuickDate(dateObj, btnId) {
-      const formatted = formatDateTime(dateObj);
-      dateInput.value = formatted;
-      updateDateDisplay(formatted);
-  
-      quickBtns.forEach(b => b.classList.remove('active'));
-      const btn = document.getElementById(btnId);
-      if (btn) btn.classList.add('active');
-  
-      if (!toggleBtn.checked) {
-        toggleBtn.checked = true;
-        reminderOptions.style.display = 'block';
-      }
-    }
-  
-    document.getElementById('btnTomorrow')?.addEventListener('click', function () {
-      applyQuickDate(setQuickDate(1, 9), this.id);
-    });
-  
-    document.getElementById('btnWeekend')?.addEventListener('click', function () {
-      const d = new Date();
-      const day = d.getDay();
-      const dist = 6 - day + (day === 6 ? 7 : 0);
-      d.setDate(d.getDate() + dist);
-      d.setHours(10, 0, 0, 0);
-      applyQuickDate(d, this.id);
-    });
-  
-    document.getElementById('btnNextWeek')?.addEventListener('click', function () {
-      const d = new Date();
-      const day = d.getDay();
-      const daysToNextMonday = (1 + 7 - day) % 7 || 7;
-      d.setDate(d.getDate() + daysToNextMonday);
-      d.setHours(9, 0, 0, 0);
-      applyQuickDate(d, this.id);
-    });
-  
-    // 4. 저장하기 (서버 연동 최적화)
+  if(document.getElementById('btnTomorrow')) document.getElementById('btnTomorrow').onclick = function() { setQuickDate(1, 9); setActiveBtn(this); };
+  if(document.getElementById('btnWeekend')) document.getElementById('btnWeekend').onclick = function() { const d=new Date(); const day=d.getDay(); const dist=6-day+(day===6?7:0); setQuickDate(dist, 10); setActiveBtn(this); };
+  if(document.getElementById('btnNextWeek')) document.getElementById('btnNextWeek').onclick = function() { const d=new Date(); const day=d.getDay(); const dist=(8-day)%7||7; setQuickDate(dist, 9); setActiveBtn(this); };
+  function setActiveBtn(target) { quickBtns.forEach(b => b.classList.remove('active')); target.classList.add('active'); }
+
+
+  // 6. [저장하기] (게스트 / 로그인 분기)
   document.getElementById('saveBtn').addEventListener('click', async () => {
-
-    // 입력 중이던 태그 반영 로직 (기존 유지)
-    if (tagInput.value.trim().length > 0) {
-      const inputTags = tagInput.value.split(',')
-        .map(t => t.trim().replace(/^#/, '').toUpperCase())
-        .filter(t => t.length > 0 && !tags.includes(t));
-      tags.push(...inputTags);
-      tagInput.value = '';
-      renderTags();
-    }
-
-    const title = document.getElementById('pageTitle').value;
-    if (!title.trim()) {
-      setStatus("제목을 입력해주세요.", "red");
-      return;
-    }
-
-    // [중요] 웹 대시보드의 토큰을 가져오기 위한 시도
-    // 1. 확장 프로그램 자체 스토리지 확인
-    // 2. 만약 없다면 현재 탭(웹 페이지)의 localStorage에서 토큰을 긁어오는 기능 추가 가능
-    chrome.storage.local.get(['accessToken', 'userId'], async (result) => {
-      let token = result.accessToken;
       
-      // 만약 스토리지가 비어있다면, 현재 열린 웹페이지가 내 서비스 페이지일 때 토큰 추출 시도
-      if (!token) {
-        setStatus("로그인 정보를 확인하는 중...", "blue");
-        // 이 부분은 나중에 '웹 로그인 시 확장 프로그램으로 토큰 전송' 로직으로 보완 필요
-      }
+      // 저장 누를 때 입력창에 글자 남아있으면 태그로 변환
+      addTagFromInput();
+
+      const title = document.getElementById('pageTitle').value.trim();
+      if (!title) { setStatus("제목을 입력해주세요.", "red"); return; }
+
+      setStatus("저장 중...", "#3182F6");
+
+      // 태그 목록 로컬 업데이트 (다음에 자동완성 등으로 쓸 수 있게)
+      await updateKnownTags(tags);
 
       const bookmarkData = {
-        url: document.getElementById('pageUrl').value,
-        title: document.getElementById('pageTitle').value,
-        content: document.getElementById('selectedText').value,
-        memo: document.getElementById('memo').value,
-        tags: tags, // 배열 형태
-        reminderAt: toggleBtn.checked && dateInput.value ? new Date(dateInput.value).toISOString() : null
+          url: document.getElementById('pageUrl').value,
+          title: title,
+          content: document.getElementById('selectedText').value,
+          memo: document.getElementById('memo').value,
+          tags: tags, 
+          tag: tags.length > 0 ? tags[0] : 'ETC', // 대표 태그
+          image: ogImageUrlInput.value, // 이미지 URL 포함
+          reminderAt: toggleBtn.checked && dateInput.value ? new Date(dateInput.value).toISOString() : null,
+          createdAt: new Date().toISOString()
       };
 
-      // 1) 로컬 저장 (백업용)
-      await saveToLocalBookmark({...bookmarkData, createdAt: new Date().toISOString()});
+      if (token) {
+          // A. 로그인 유저 -> 서버 전송
+          try {
+              // userId 필요시 (백엔드 로직에 따라 다름)
+              const storedUser = await chrome.storage.local.get(['userId']);
+              const userId = storedUser.userId ? Number(storedUser.userId) : 1;
+              bookmarkData.userId = userId;
 
-      // 2) 토큰이 없으면 여기서 종료
-      if (!token) {
-        setStatus("로컬에 임시 저장되었습니다. (로그인 필요)", "orange");
-        return;
+              const response = await fetch(`${API_BASE_URL}/api/bookmarks`, {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify(bookmarkData)
+              });
+
+              if (response.ok) {
+                  setStatus("서버 저장 성공!", "green");
+                  setTimeout(() => window.close(), 1000);
+              } else if (response.status === 401) {
+                  setStatus("인증 만료. 다시 로그인하세요.", "red");
+              } else {
+                  setStatus(`서버 오류 (${response.status})`, "red");
+              }
+          } catch (error) {
+              console.error(error);
+              setStatus("서버 연결 실패", "red");
+          }
+      } else {
+          // B. 게스트 유저 -> 로컬 스토리지 저장
+          // 게스트 데이터는 서버로 안 가고 크롬 브라우저에만 저장됨.
+          // 대시보드(웹)에서는 직접 접근 불가. 나중에 로그인 시 동기화하거나 content script로 띄워줘야 함.
+          chrome.storage.local.get(['guestBookmarks'], (res) => {
+              const guestList = res.guestBookmarks || [];
+              bookmarkData.id = 'guest_' + Date.now();
+              bookmarkData.isSynced = false; 
+              guestList.unshift(bookmarkData);
+
+              chrome.storage.local.set({ guestBookmarks: guestList }, () => {
+                  setStatus("게스트 모드로 저장됨 (내 기기)", "orange");
+                  setTimeout(() => window.close(), 1200);
+              });
+          });
       }
-
-      // 3) 서버 전송 (실제 연동)
-      try {
-        setStatus("서버에 저장 중...", "blue");
-        const response = await fetch(`${API_BASE_URL}/api/bookmarks`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` // 서버가 이 형식을 기대함
-          },
-          body: JSON.stringify(bookmarkData)
-        });
-
-        if (response.ok) {
-          setStatus("서버 저장 성공!", "green");
-          // 저장 성공 시 대시보드 탭이 열려있다면 새로고침 명령을 보낼 수 있음
-          setTimeout(() => window.close(), 800);
-        } else if (response.status === 401) {
-          setStatus("인증 만료. 다시 로그인해주세요.", "red");
-        } else {
-          setStatus(`서버 오류 (${response.status})`, "red");
-        }
-      } catch (error) {
-        console.error("서버 연결 실패:", error);
-        setStatus("서버 연결 불가 (오프라인 저장)", "orange");
-      }
-    });
   });
-  
-  });
-  
+
+  function updateKnownTags(usedTags) {
+      return new Promise((resolve) => {
+          if (!usedTags || usedTags.length === 0) { resolve(); return; }
+          chrome.storage.local.get(['localTags'], (res) => {
+              let savedTags = res.localTags || [];
+              let isChanged = false;
+              usedTags.forEach(tagName => {
+                  if (!savedTags.find(t => t.name === tagName)) {
+                      savedTags.push({ name: tagName, color: '#ffadad4D', createdAt: new Date().toISOString() });
+                      isChanged = true;
+                  }
+              });
+              if (isChanged) {
+                  chrome.storage.local.set({ localTags: savedTags }, resolve);
+              } else {
+                  resolve();
+              }
+          });
+      });
+  }
+
+  // 7. 페이지 이동 기능
+  const baseUrl = 'http://127.0.0.1:5500/';
+  const dashboardBtn = document.getElementById('goToDashboardBtn');
+  if (dashboardBtn) {
+      dashboardBtn.addEventListener('click', () => {
+          chrome.tabs.create({ url: `${baseUrl}dashboard/dashboard.html` });
+      });
+  }
+  const bookmarkListBtn = document.getElementById('goToBookmarkListBtn');
+  if (bookmarkListBtn) {
+      bookmarkListBtn.addEventListener('click', () => {
+          chrome.tabs.create({ url: `${baseUrl}bookmark/bookmark.html` });
+      });
+  }
+
+});

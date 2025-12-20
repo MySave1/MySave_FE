@@ -11,13 +11,14 @@
     const API_BASE_URL = "http://13.60.25.65:8080";
 
     (async () => {
-      // 1) URL에서 code 추출
+      // 1) URL에서 code 추출 (카카오가 뒤에 붙여준 ?code=... 값)
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get("code");
 
       if (!code) {
-        alert("잘못된 접근입니다. (인증 코드가 없습니다)");
-        window.location.replace("../index/index.html");
+        alert("잘못된 접근입니다.");
+        // 실패 시 메인으로 이동 (경로 수정: 상위 폴더로 이동)
+        window.location.replace("../index.html"); 
         return;
       }
 
@@ -32,7 +33,7 @@
         );
 
         if (!response.ok) {
-          throw new Error(`서버 응답 오류: ${response.status}`);
+            throw new Error(`서버 응답 오류: ${response.status}`);
         }
 
         // 3) 응답 JSON
@@ -44,19 +45,23 @@
           localStorage.setItem("userName", data.name);
           localStorage.setItem("userEmail", data.email);
           localStorage.setItem("userId", data.userId);
+          
+          // 임시 저장한 닉네임이 있다면 덮어쓰기 (선택사항)
+          const tempNick = localStorage.getItem("tempNickname");
+          if(tempNick) localStorage.setItem("userName", tempNick);
 
-            alert(`${data.name}님 환영합니다!`);
-        const redirectTo = localStorage.getItem("redirectTo");
-        localStorage.removeItem("redirectTo");
-        window.location.replace(redirectTo || "../dashboard/dashboard.html");
+          alert(`${data.name}님 환영합니다!`);
+          
+          window.location.replace("../dashboard/dashboard.html"); 
+          
         } else {
-          alert("로그인 응답에 accessToken이 없습니다.");
-          window.location.replace("../index/index.html");
+          alert("로그인 정보가 없습니다.");
+          window.location.replace("../index.html");
         }
       } catch (error) {
         console.error("로그인 처리 실패:", error);
-        alert("로그인 처리에 실패했습니다. 관리자에게 문의하세요.");
-        window.location.replace("../index/index.html");
+        alert("로그인 처리에 실패했습니다.");
+        window.location.replace("../index.html");
       }
     })();
   </script>
