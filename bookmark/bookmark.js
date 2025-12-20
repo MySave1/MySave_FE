@@ -4,7 +4,7 @@
 let currentFilterType = 'all'; // all, starred, read, unread
 let currentSortOrder = 'latest'; // latest, oldest
 let currentPage = 1;
-const itemsPerPage = 12;
+const itemsPerPage = 9;
 
 // ==========================================
 // 2. 페이지 로드 및 이벤트 리스너

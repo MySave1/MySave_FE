@@ -191,7 +191,7 @@ function renderReminderUI(data) {
         delBtn.style.display = "inline-block";
     } else {
         displayEl.innerHTML = `<p style="color: #aaa; font-size: 14px;">리마인드가 설정되지 않았습니다.</p>`;
-        toggleBtn.textContent = "설정하기";
+        toggleBtn.textContent = "리마인더 설정";
         delBtn.style.display = "none";
     }
 }

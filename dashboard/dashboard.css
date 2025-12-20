@@ -615,8 +615,8 @@ input:checked + .slider:before { transform: translateX(16px); }
 
 /* 개별 아이콘 공통 스타일 (종, 휴지통 모두 동일하게) */
 .control-icon {
-    width: 32px;
-    height: 32px;
+    width: 25px;
+    height: 25px;
     background-color: rgba(255, 255, 255, 0.9);
     border-radius: 50%;
     display: flex;

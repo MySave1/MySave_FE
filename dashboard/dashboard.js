@@ -148,7 +148,25 @@ function updateDashboardStats() {
 
         tagMeta[t].count += 1;
 
-        const savedTs = typeof b.id === "number" ? b.id : 0;
+        let savedTs = 0;
+
+        if (typeof b.id === "number") {
+        savedTs = b.id;
+        } else if (b.reminderTime) {
+        const rt = Date.parse(b.reminderTime);
+        savedTs = Number.isFinite(rt) ? rt : 0;
+        } else if (b.date) {
+        // "2025.12.20" -> timestamp
+        const parts = b.date.split(".");
+        if (parts.length === 3) {
+            const y = Number(parts[0]);
+            const m = Number(parts[1]) - 1;
+            const d = Number(parts[2]);
+            const dt = new Date(y, m, d).getTime();
+            savedTs = Number.isFinite(dt) ? dt : 0;
+        }
+        }
+
         if (savedTs > tagMeta[t].latestSaved) tagMeta[t].latestSaved = savedTs;
     });
 
@@ -167,9 +185,11 @@ function updateDashboardStats() {
         } else {
         const topCount = sortedTags[0].count;
         const tied = sortedTags
-            .filter(t => t.count === topCount)
-            .sort((a, b) => a.name.localeCompare(b.name, "ko-KR", { numeric: true, sensitivity: "base" }));
-
+        .filter(t => t.count === topCount)
+        .sort((a, b) =>
+          b.latestSaved - a.latestSaved ||
+          a.name.localeCompare(b.name, "ko-KR", { numeric: true, sensitivity: "base" })
+        );
         const mainName = tied[0].name;
         const extra = tied.length - 1;
 
