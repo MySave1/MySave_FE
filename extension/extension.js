@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const IS_DEV = !('update_url' in chrome.runtime.getManifest()); // 로컬 로드면 true인 경우 많음
   const baseUrl = IS_DEV
     ? 'http://127.0.0.1:5500/'
-    : 'https://<너의-vercel-도메인>/';
+    : 'https://my-save-fe.vercel.app/';
   const dashboardBtn = document.getElementById('goToDashboardBtn');
   if (dashboardBtn) {
       dashboardBtn.addEventListener('click', () => {
