@@ -52,7 +52,7 @@ function renderMiniCards() {
         const html = `
             <div class="mini-card" onclick="goToDetailFromIndex(${item.id})">
                 <div class="mini-card-img" style="background-color: ${bgColor};">
-                    ${imageContent}
+                   
                 </div>
                 <div class="mini-card-body">
                     <div class="mini-card-title">${item.title}</div>
