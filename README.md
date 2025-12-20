@@ -45,10 +45,10 @@ MySave는 웹에서 발견한 유용한 정보를 **빠르게 저장**하고, **
 
 ### 4.2 크롬 확장 실행(압축 해제 로드)
 
-1. 크롬에서 `chrome://extensions` 접속
-2. 개발자 모드 ON
+1. 크롬 브라우저 주소창에 `chrome://extensions` 입력
+2. 개발자 모드 활성화
 3. “압축해제된 확장 프로그램 로드” 클릭
-4. `extension/` 폴더(확장 루트) 선택
+4. `extension/` 폴더 선택 선택하여 로드
 
 ---
 
@@ -94,7 +94,7 @@ MySave_FE-feature-FE/
 │  ├─ extension.js
 │  ├─ content.js
 │  └─ manifest.json
-└─ assets/
+└─ images/
    └─ screenshots/
 ```
 
@@ -124,7 +124,7 @@ MySave_FE-feature-FE/
 
 ### 6.1 스크린샷 목록
 
-스크린샷은 `assets/screenshots/` 경로에 저장했습니다.
+스크린샷은 `images/screenshots/` 경로에 저장했습니다.
 
 - 01_대시보드
 - 02_북마크목록_전체
@@ -146,7 +146,7 @@ MySave_FE-feature-FE/
 
 #### 1) 대시보드 (`dashboard/dashboard.html`)
 
-<img src="assets/screenshots/01_대시보드.png" width="900" alt="01 대시보드" />
+<img src="images/screenshots/01_대시보드.png" width="900" alt="01 대시보드" />
 
 - 통계 카드
   - 오늘 저장한 글
@@ -168,8 +168,8 @@ MySave_FE-feature-FE/
 
 #### 2) 북마크 목록 (`bookmark/bookmark.html`)
 
-<img src="assets/screenshots/02_북마크목록_전체.png" width="900" alt="02 북마크목록 전체" />
-<img src="assets/screenshots/03_북마크목록_즐겨찾기.png" width="900" alt="03 북마크목록 즐겨찾기" />
+<img src="images/screenshots/02_북마크목록_전체.png" width="900" alt="02 북마크목록 전체" />
+<img src="images/screenshots/03_북마크목록_즐겨찾기.png" width="900" alt="03 북마크목록 즐겨찾기" />
 
 - 저장한 북마크 목록을 최신순으로 표시합니다.
 - 전체 북마크를 한 곳에서 모아볼 수 있습니다.
@@ -183,7 +183,7 @@ MySave_FE-feature-FE/
 
 #### 3) 북마크 상세 (`bookmarkContent/bookmarkContent.html`)
 
-<img src="assets/screenshots/04_북마크상세.png" width="900" alt="04 북마크 상세" />
+<img src="images/screenshots/04_북마크상세.png" width="900" alt="04 북마크 상세" />
 
 - 수정/상태 변경
   - 수정하기 버튼으로 제목/텍스트 수정이 가능합니다.
@@ -203,7 +203,7 @@ MySave_FE-feature-FE/
 
 #### 4) 검색(공통)
 
-<img src="assets/screenshots/05_북마크검색.png" width="900" alt="05 북마크 검색" />
+<img src="images/screenshots/05_북마크검색.png" width="900" alt="05 북마크 검색" />
 
 - 대시보드/북마크 목록 상단에서 검색이 가능합니다.
 - “저장한 글, 태그 검색”을 통해 제목 또는 태그에 검색어가 포함된 북마크 목록을 반환합니다.
@@ -212,7 +212,7 @@ MySave_FE-feature-FE/
 
 #### 5) 태그 (`tag/tag.html`)
 
-<img src="assets/screenshots/06_태그.png" width="900" alt="06 태그" />
+<img src="images/screenshots/06_태그.png" width="900" alt="06 태그" />
 
 - 태그 추가 시 영문은 대문자로 통일합니다.
 - 기존 태그와 중복되면 경고창(“이미 존재하는 태그입니다”)을 띄웁니다.
@@ -225,7 +225,7 @@ MySave_FE-feature-FE/
 
 #### 6) 리마인더 (`reminder/reminder.html`)
 
-<img src="assets/screenshots/07_리마인드.png" width="900" alt="07 리마인드" />
+<img src="images/screenshots/07_리마인드.png" width="900" alt="07 리마인드" />
 
 - 상단 배너 문구가 상태에 따라 달라집니다.
   - 오늘 마감 글이 없을 때: “여유로운 하루네요! …”
@@ -242,7 +242,7 @@ MySave_FE-feature-FE/
 
 #### 7) 설정 (`setting/setting.html`)
 
-<img src="assets/screenshots/08_설정.png" width="900" alt="08 설정" />
+<img src="images/screenshots/08_설정.png" width="900" alt="08 설정" />
 
 - AI 설정, 환경 설정(알림/디자인), 데이터 관리 메뉴로 구성했습니다.
 - 일부 기능은 현재 미구현 상태입니다. (예: 데이터 관리, 프로필 이미지 수정)
@@ -251,7 +251,7 @@ MySave_FE-feature-FE/
 
 #### 8) 대시보드 - 북마크 직접 추가(모달)
 
-<img src="assets/screenshots/09_대시보드_북마크직접추가.png" width="900" alt="09 대시보드 북마크 직접 추가" />
+<img src="images/screenshots/09_대시보드_북마크직접추가.png" width="900" alt="09 대시보드 북마크 직접 추가" />
 
 - 모달에서 제목(필수), 텍스트, 메모, 태그, 리마인더를 설정하고 저장할 수 있습니다.
 
@@ -259,9 +259,9 @@ MySave_FE-feature-FE/
 
 #### 9) 확장 프로그램 (`extension/extension.html`)
 
-<img src="assets/screenshots/10_확장프로그램_대표이미지존재x.png" width="900" alt="10 확장프로그램 대표이미지 없음" />
-<img src="assets/screenshots/11_확장프로그램_대표이미지존재.png" width="900" alt="11 확장프로그램 대표이미지 있음" />
-<img src="assets/screenshots/12_확장프로그램_리마인더설정.png" width="900" alt="12 확장프로그램 리마인더 설정" />
+<img src="images/screenshots/10_확장프로그램_대표이미지존재x.png" width="900" alt="10 확장프로그램 대표이미지 없음" />
+<img src="images/screenshots/11_확장프로그램_대표이미지존재.png" width="900" alt="11 확장프로그램 대표이미지 있음" />
+<img src="images/screenshots/12_확장프로그램_리마인더설정.png" width="900" alt="12 확장프로그램 리마인더 설정" />
 
 - 원클릭 저장을 위한 UI를 제공합니다.
 - 현재 페이지 URL을 가져와 저장 흐름을 시작합니다.
@@ -271,7 +271,7 @@ MySave_FE-feature-FE/
 
 #### 10) 초기 화면 (`index.html`)
 
-<img src="assets/screenshots/index.html_초기화면.png" width="900" alt="index 초기화면" />
+<img src="images/screenshots/index.html_초기화면.png" width="900" alt="index 초기화면" />
 
 - 서비스 진입 및 기본 탐색을 위한 초기 화면입니다.
 
@@ -308,5 +308,5 @@ MySave_FE-feature-FE/
 ## 8. 개선 예정
 
 - 설정 페이지 일부 기능 구현(데이터 관리/프로필 등) - 구현 예정.
-- 로그인 흐름 안정화(배포 환경 CORS/HTTPS/리다이렉트 URI 정리)
-- 확장 프로그램 저장 데이터와 웹 데이터 동기화(로그인 시 마이그레이션 등)
+- 로그인 흐름 안정화
+- 확장 프로그램 저장 데이터와 웹 데이터 동기화
