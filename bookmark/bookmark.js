@@ -144,15 +144,11 @@ function renderBookmarks() {
         const card = document.createElement('div');
         card.className = 'card';
         
-        // 요약 배지 (고정: 요약하기)
-        let summaryTag = `<span class="summary-tag" style="display: inline-flex !important; white-space: nowrap !important; align-items: center; justify-content: center; height: 20px; padding: 0 10px; background: rgba(255, 255, 255, 0.9); border-radius: 14px; font-size: 12px; font-weight: 400; color: #555; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: absolute; top: 10px; right: 10px; cursor: pointer;" onclick="event.stopPropagation();">요약하기</span>`;
-
         const starClass = item.isStarred ? 'fa-solid fa-star active' : 'fa-regular fa-star';
         const starColor = item.isStarred ? '#facc15' : '';
 
         card.innerHTML = `
             <div class="card-img" style="background-color: ${item.bgColor || '#f0f2f5'}; height:160px; position:relative;">
-                ${summaryTag}
             </div>
             <div class="card-body" style="padding:15px;">
                 <h4 class="card-title" style="font-size:15px; font-weight:700; margin-bottom:12px; color:#333;">${item.title || '제목 없음'}</h4>
