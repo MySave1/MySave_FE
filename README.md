@@ -145,6 +145,9 @@ MySave_FE-feature-FE/
 ### 6.2 페이지별 기능 요약
 
 #### 1) 대시보드 (`dashboard/dashboard.html`)
+
+<img src="assets/screenshots/01_대시보드.png" width="900" alt="01 대시보드" />
+
 - 통계 카드
   - 오늘 저장한 글
   - 미완료 리마인드
@@ -161,7 +164,13 @@ MySave_FE-feature-FE/
   - 토글 ON 시 퀵 버튼(내일/이번 주말/다음주) 제공
   - 직접 날짜/시간 선택 가능
 
+---
+
 #### 2) 북마크 목록 (`bookmark/bookmark.html`)
+
+<img src="assets/screenshots/02_북마크목록_전체.png" width="900" alt="02 북마크목록 전체" />
+<img src="assets/screenshots/03_북마크목록_즐겨찾기.png" width="900" alt="03 북마크목록 즐겨찾기" />
+
 - 저장한 북마크 목록을 최신순으로 표시합니다.
 - 전체 북마크를 한 곳에서 모아볼 수 있습니다.
 - 카드에서 빠른 상태 변경이 가능합니다. (삭제/즐겨찾기 등)
@@ -170,7 +179,12 @@ MySave_FE-feature-FE/
 - 페이지네이션
   - 9개 단위로 분할하여 9개 이상일 경우 페이지 이동이 가능합니다.
 
+---
+
 #### 3) 북마크 상세 (`bookmarkContent/bookmarkContent.html`)
+
+<img src="assets/screenshots/04_북마크상세.png" width="900" alt="04 북마크 상세" />
+
 - 수정/상태 변경
   - 수정하기 버튼으로 제목/텍스트 수정이 가능합니다.
   - 읽음 / 안 읽음 버튼으로 상태를 토글합니다.
@@ -185,7 +199,21 @@ MySave_FE-feature-FE/
 - 목록으로
   - 사용자가 진입한 위치(목록/대시보드)로 되돌아가도록 구성했습니다.
 
-#### 4) 태그 (`tag/tag.html`)
+---
+
+#### 4) 검색(공통)
+
+<img src="assets/screenshots/05_북마크검색.png" width="900" alt="05 북마크 검색" />
+
+- 대시보드/북마크 목록 상단에서 검색이 가능합니다.
+- “저장한 글, 태그 검색”을 통해 제목 또는 태그에 검색어가 포함된 북마크 목록을 반환합니다.
+
+---
+
+#### 5) 태그 (`tag/tag.html`)
+
+<img src="assets/screenshots/06_태그.png" width="900" alt="06 태그" />
+
 - 태그 추가 시 영문은 대문자로 통일합니다.
 - 기존 태그와 중복되면 경고창(“이미 존재하는 태그입니다”)을 띄웁니다.
 - 태그 선택 시 해당 태그에 속하는 북마크 목록을 보여줍니다.
@@ -193,7 +221,12 @@ MySave_FE-feature-FE/
   - 삭제 전 경고창을 띄웁니다.
   - 삭제 확정 시 태그와 해당 태그에 포함된 북마크 글을 함께 삭제합니다.
 
-#### 5) 리마인더 (`reminder/reminder.html`)
+---
+
+#### 6) 리마인더 (`reminder/reminder.html`)
+
+<img src="assets/screenshots/07_리마인드.png" width="900" alt="07 리마인드" />
+
 - 상단 배너 문구가 상태에 따라 달라집니다.
   - 오늘 마감 글이 없을 때: “여유로운 하루네요! …”
   - 오늘 마감 글이 있을 때: “오늘 마감되는 글 n건 …”
@@ -205,20 +238,42 @@ MySave_FE-feature-FE/
 - URL 보정
   - 북마크 추가 시 `https://`를 작성하지 않아도 도메인이 자동 보정됩니다.
 
-#### 6) 설정 (`setting/setting.html`)
+---
+
+#### 7) 설정 (`setting/setting.html`)
+
+<img src="assets/screenshots/08_설정.png" width="900" alt="08 설정" />
+
 - AI 설정, 환경 설정(알림/디자인), 데이터 관리 메뉴로 구성했습니다.
 - 일부 기능은 현재 미구현 상태입니다. (예: 데이터 관리, 프로필 이미지 수정)
 
-#### 7) 검색(공통)
-- 대시보드/북마크 목록 상단에서 검색이 가능합니다.
-- “저장한 글, 태그 검색”을 통해 제목 또는 태그에 검색어가 포함된 북마크 목록을 반환합니다.
+---
 
-#### 8) 로그인/콜백 (`login/login.html`, `callback/callback.html`)
-- 카카오 로그인 연결 버튼 → 로그인 페이지로 이동합니다.
-- 계정 정보 설정 페이지 이후 카카오 로그인 화면으로 연결됩니다.
-- 로그인 성공까지는 연결되었으나, 백엔드에서 받은 응답을 대시보드로 완전히 넘기는 흐름은 추가 보완이 필요합니다.
+#### 8) 대시보드 - 북마크 직접 추가(모달)
+
+<img src="assets/screenshots/09_대시보드_북마크직접추가.png" width="900" alt="09 대시보드 북마크 직접 추가" />
+
+- 모달에서 제목(필수), 텍스트, 메모, 태그, 리마인더를 설정하고 저장할 수 있습니다.
 
 ---
+
+#### 9) 확장 프로그램 (`extension/extension.html`)
+
+<img src="assets/screenshots/10_확장프로그램_대표이미지존재x.png" width="900" alt="10 확장프로그램 대표이미지 없음" />
+<img src="assets/screenshots/11_확장프로그램_대표이미지존재.png" width="900" alt="11 확장프로그램 대표이미지 있음" />
+<img src="assets/screenshots/12_확장프로그램_리마인더설정.png" width="900" alt="12 확장프로그램 리마인더 설정" />
+
+- 원클릭 저장을 위한 UI를 제공합니다.
+- 현재 페이지 URL을 가져와 저장 흐름을 시작합니다.
+- 리마인더 설정 등 확장 전용 입력 흐름을 제공합니다.
+
+---
+
+#### 10) 초기 화면 (`index.html`)
+
+<img src="assets/screenshots/index.html_초기화면.png" width="900" alt="index 초기화면" />
+
+- 서비스 진입 및 기본 탐색을 위한 초기 화면입니다.
 
 ### 6.3 핵심 UX 포인트
 
