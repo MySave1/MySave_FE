@@ -88,9 +88,17 @@ function toggleStar(element, id) {
 
 function getRecentSix() {
     const allData = getDashboardData();
-    allData.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  
+    allData.sort((a, b) => {
+      const aId = typeof a.id === "number" ? a.id : 0;
+      const bId = typeof b.id === "number" ? b.id : 0;
+      if (bId !== aId) return bId - aId;
+        return (b.date || "").localeCompare(a.date || "");
+    });
+  
     return allData.slice(0, 6);
-}
+  }
+  
 
 // =============================
 // 3. 통계 업데이트 (HTML의 '데이터 계산 중' 해결)
@@ -132,26 +140,35 @@ function updateDashboardStats() {
     cloud.innerHTML = "";
     const masterTags = getTagList();
 
-    const tagCount = {};
+    const tagMeta = {};
+
     bookmarks.forEach(b => {
         const t = (b.tag || "ETC").toUpperCase();
-        tagCount[t] = (tagCount[t] || 0) + 1;
+        if (!tagMeta[t]) tagMeta[t] = { count: 0, latestSaved: 0 };
+
+        tagMeta[t].count += 1;
+
+        const savedTs = typeof b.id === "number" ? b.id : 0;
+        if (savedTs > tagMeta[t].latestSaved) tagMeta[t].latestSaved = savedTs;
     });
 
-    const sortedTags = Object.entries(tagCount)
-        .map(([name, count]) => ({ name, count }))
-        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    const sortedTags = Object.entries(tagMeta)
+        .map(([name, v]) => ({ name, count: v.count, latestSaved: v.latestSaved }))
+        .sort((a, b) =>
+        b.count - a.count ||
+        b.latestSaved - a.latestSaved ||
+        a.name.localeCompare(b.name, "ko-KR", { numeric: true, sensitivity: "base" })
+        );
 
     const topTagEl = document.querySelector(".stat-card:nth-child(3) .stat-value");
-
     if (topTagEl) {
         if (!sortedTags.length) {
         topTagEl.textContent = "없음";
         } else {
         const topCount = sortedTags[0].count;
-
-        const tied = sortedTags.filter(t => t.count === topCount)
-            .sort((a, b) => a.name.localeCompare(b.name));
+        const tied = sortedTags
+            .filter(t => t.count === topCount)
+            .sort((a, b) => a.name.localeCompare(b.name, "ko-KR", { numeric: true, sensitivity: "base" }));
 
         const mainName = tied[0].name;
         const extra = tied.length - 1;
