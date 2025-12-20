@@ -265,7 +265,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // 7. 페이지 이동 기능
-  const baseUrl = 'http://127.0.0.1:5500/';
+  const IS_DEV = !('update_url' in chrome.runtime.getManifest()); // 로컬 로드면 true인 경우 많음
+  const baseUrl = IS_DEV
+    ? 'http://127.0.0.1:5500/'
+    : 'https://<너의-vercel-도메인>/';
   const dashboardBtn = document.getElementById('goToDashboardBtn');
   if (dashboardBtn) {
       dashboardBtn.addEventListener('click', () => {

@@ -211,7 +211,7 @@ function initDataManagement() {
     
     localStorage.clear();
     alert("데이터 삭제 완료! 초기화면으로 이동합니다.");
-    window.location.href = "../index/index.html";
+    window.location.href = "../index.html";
   });
 }
 

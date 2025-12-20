@@ -17,8 +17,8 @@
 
       if (!code) {
         alert("잘못된 접근입니다.");
-        // 실패 시 메인으로 이동 (경로 수정: 상위 폴더로 이동)
-        window.location.replace("../index.html"); 
+        // 실패 시 메인으로 이동
+        window.location.replace("./index.html"); 
         return;
       }
 
@@ -56,12 +56,12 @@
           
         } else {
           alert("로그인 정보가 없습니다.");
-          window.location.replace("../index.html");
+          window.location.replace("./index.html");
         }
       } catch (error) {
         console.error("로그인 처리 실패:", error);
         alert("로그인 처리에 실패했습니다.");
-        window.location.replace("../index.html");
+        window.location.replace("./index.html");
       }
     })();
   </script>
