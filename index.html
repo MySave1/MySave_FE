@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daum 모바일 클론</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
+    <script src="/script.js"></script>
 </head>
 <body>
 
@@ -72,7 +73,7 @@
                 <div class="card recommendation-widget">
                     <div class="widget-header">
                         <strong>추천 읽을거리</strong> 
-                        <a href="../dashboard/dashboard.html" class="more" style="text-decoration: none; color: inherit; cursor: pointer;">더보기 ></a>                    </div>
+                        <a href="/dashboard/dashboard.html" class="more" style="text-decoration: none; color: inherit; cursor: pointer;">더보기 ></a>                    </div>
                     <div class="mini-card-grid" id="miniCardGrid"></div>
                 </div>
                 
@@ -80,7 +81,7 @@
         </main>
     </div>
 
-    <script src="script.js"></script>
+    <script src="/script.js" defer></script>
     <script>
         window.addEventListener('load', function() {
             // 페이지 로드 시 저장된 이름이 있는지 확인만 함 (강제 이동 X)
